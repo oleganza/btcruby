@@ -1,0 +1,18 @@
+PATH
+  remote: .
+  specs:
+    btcruby (0.1.0)
+      ffi (~> 1.9, >= 1.9.3)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ffi (1.9.3)
+    rake (10.3.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  btcruby!
+  rake

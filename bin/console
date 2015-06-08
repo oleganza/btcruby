@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+require_relative '../lib/btcruby.rb'
+require_relative '../lib/btcruby/extensions.rb'
+
+include BTC
+
+require 'irb'
+require 'irb/completion'
+
+# IRB.conf[:PROMPT]||={}
+# IRB.conf[:PROMPT][:BTC_PROMPT] = { # name of prompt mode
+#   :AUTO_INDENT => true,           # enables auto-indent mode
+#   :PROMPT_I => %{>>},             # normal prompt
+#   :PROMPT_S => %{">},             # prompt for continuated strings
+#   :PROMPT_C => %{*>},             # prompt for continuated statement
+#   :RETURN => "=>%s\n"             # format to return value
+# }
+# IRB.conf[:PROMPT_MODE] = :BTC_PROMPT
+IRB.start

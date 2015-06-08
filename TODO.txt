@@ -1,0 +1,40 @@
+
+TODO:
+
+- verify integrity of the block after reading: hash all txs in a merkle root and compare with the declared merkle root.
+- add BIP70 payment request support
+- add convenience methods to handle BIP44 accounts in BTC::Keychain (like in CoreBitcoin)
+- add Bitcoin URI support to encode and parse `bitcoin:` URIs.
+
++ replace factory methods like `C.with_data` or `C.with_key` with initializer since we now throw exceptions instead of returning nil on input errors.
++ block and block header classes
++ redesigned transaction builder to return a result object like in CoreBitcoin
++ data helpers
++ tests
++ base58
++ addresses
++ simplify API for addresses: Address.address_with_string() -> Address.with_string()
++ add test for private key address
++ keys and signatures support
+  + canonical signature
+  + deterministic signatures: k = HMAC-SHA256(hash, privkey)
++ add ffi to Gemspec as a dependency
++ transaction parsing and composing
++ script parsing and composing
++ tx import/export in bitcoin-QT dictionary format
++ add docs for to_wif/from_wif
++ add diagnostics to check canonicality of the signature
++ BIP32 implementation: Keychain
++ base58/base58check mess: untangle
++ specs and fixes for zero-padded private keys
++ clearer testnet/mainnet API for Script
++ fee computation for transactions
++ signature_hash for transaction
++ transaction builder
++ tx ID conversion to/from hash
++ helper properties for Transaction and inputs/outputs to hold extra data received from APIs.
+
+- test tool to detect broken or non-canonical transactions
+
+- compact signatures support
+
