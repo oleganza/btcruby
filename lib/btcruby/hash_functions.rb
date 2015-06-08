@@ -1,7 +1,7 @@
 require 'digest/sha1'
 require 'digest/sha2'
 require 'digest/rmd160'
-require 'digest/hmac'
+require 'openssl'
 
 module BTC
   
@@ -40,14 +40,17 @@ module BTC
       ripemd160(sha256(data))
     end
 
+    OPENSSL_DIGEST_NAME_SHA256 = 'sha256'.freeze
+    OPENSSL_DIGEST_NAME_SHA512 = 'sha512'.freeze
+
     def hmac_sha256(data: nil, key: nil)
       raise ArgumentError, "Data is missing" if !data || !key
-      Digest::HMAC.digest(data, key, Digest::SHA256)
+      ::OpenSSL::HMAC.digest(OPENSSL_DIGEST_NAME_SHA256, key, data)
     end
 
     def hmac_sha512(data: nil, key: nil)
       raise ArgumentError, "Data is missing" if !data || !key
-      Digest::HMAC.digest(data, key, Digest::SHA512)
+      ::OpenSSL::HMAC.digest(OPENSSL_DIGEST_NAME_SHA512, key, data)
     end
 
   end
