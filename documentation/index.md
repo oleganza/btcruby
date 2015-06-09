@@ -11,7 +11,7 @@ Bitcoin Data Structures                        | Utilities                      
 [Constants](constants.md)                      | [Base58](base58.md)                 | [HashFunctions](hash_functions.md)
 [Address](address.md)                          | [Core Extensions](extensions.md)    | [Key](key.md)
 ↳ [PublicKeyAddress](p2pkh.md)                 | [Data](data.md)                     | [Keychain](keychain.md)
-↳ [ScriptHashAddress](p2psh.md)                | [Diagnostics](diagnostics.md)       | [OpenSSL](openssl.md)
+↳ [ScriptHashAddress](p2sh.md)                | [Diagnostics](diagnostics.md)       | [OpenSSL](openssl.md)
 ↳ [WIF](wif.md)                                | [Hash↔ID Conversions](hash_id.md)   |
 [Block](block.md)                              | [ProofOfWork](proof_of_work.md)     |
 [BlockHeader](block_header.md)                 | [WireFormat](wire_format.md)        |
