@@ -130,7 +130,7 @@ builder.input_addresses = [ "L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVw
 builder.unspent_outputs_provider_block = lambda do |addresses, outputs_amount, outputs_size, fee_rate|
   txout = BTC::TransactionOutput.new(
     value: 50_000,
-    script: BTC::PublicKeyAddress.with_string("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script,
+    script: BTC::PublicKeyAddress.parse("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script,
     transaction_id: "115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986",
     index: 0
   )
@@ -179,7 +179,7 @@ tx.add_input(TransactionInput.new(
 # 2. Add a raw output with a script
 tx.add_output(TransactionOutput.new(
                 value: 100_000,
-                script: PublicKeyAddress.with_string("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG").script))
+                script: PublicKeyAddress.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG").script))
 
 # 3. Get the private key from WIF
 key = Key.new(wif: "L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy")

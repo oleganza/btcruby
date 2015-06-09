@@ -19,7 +19,7 @@ tx.add_input(TransactionInput.new(
 # 2. Add a raw output with a script
 tx.add_output(TransactionOutput.new(
                 value: 100_000,
-                script: PublicKeyAddress.with_string("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG").script))
+                script: PublicKeyAddress.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG").script))
 
 # 3. Get the private key from WIF
 key = Key.new(wif: "L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy")
@@ -27,7 +27,7 @@ key = Key.new(wif: "L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy")
 # 4. Sign the input (assuming it links to an output with address 18oxCAnbuKHDjP7KzLBDj8mLjggDBjE1Q9)
 hashtype = BTC::SIGHASH_ALL
 sighash = tx.signature_hash(input_index: 0,
-                            output_script: PublicKeyAddress.with_string("18oxCAnbuKHDjP7KzLBDj8mLjggDBjE1Q9").script,
+                            output_script: PublicKeyAddress.parse("18oxCAnbuKHDjP7KzLBDj8mLjggDBjE1Q9").script,
                             hash_type: hashtype)
 tx.inputs[0].signature_script = Script.new << (key.ecdsa_signature(sighash) + WireFormat.encode_uint8(hashtype)) << key.public_key
 

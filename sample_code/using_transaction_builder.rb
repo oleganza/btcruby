@@ -20,7 +20,7 @@ builder.input_addresses = [ BTC::Key.new(wif: "L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27
 builder.unspent_outputs_provider_block = lambda do |addresses, outputs_amount, outputs_size, fee|
   txout = BTC::TransactionOutput.new(
     value: 50_000,
-    script: BTC::PublicKeyAddress.with_string("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script,
+    script: BTC::PublicKeyAddress.parse("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script,
     transaction_id: "115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986",
     index: 0
   )
@@ -30,10 +30,10 @@ end
 # 3. Specify payment address and amount
 builder.outputs = [ BTC::TransactionOutput.new(
                         value: 10_000, 
-                        script: BTC::PublicKeyAddress.with_string("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script) ]
+                        script: BTC::PublicKeyAddress.parse("17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV").script) ]
 
 # 4. Specify the change address
-builder.change_address = BTC::PublicKeyAddress.with_string("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
+builder.change_address = BTC::PublicKeyAddress.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
 
 # 5. Build the transaction and broadcast it.
 result = builder.build

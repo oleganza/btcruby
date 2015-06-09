@@ -87,26 +87,6 @@ module BTC
                       network: network)
     end
 
-    # Creates an instance with public key data (compressed or not).
-    # You can verify signatures with that instance, but cannot sign messages.
-    # If the public key is compressed, public_key_compressed attribute will be set to true.
-    def self.with_public_key(public_key, network: nil)
-      raise ArgumentError, "Use Key.new(public_key: ...) instead"
-    end
-
-    # Creates an instance with private key data (32 bytes).
-    # You can sign messages and verify signatures with that instance.
-    # public_key_compressed is set to true as a default.
-    def self.with_private_key(private_key, public_key_compressed: true, network: nil)
-      raise ArgumentError, "Use Key.new(private_key: ...) instead"
-    end
-
-    # Creates an instance with a private key encoded in WIF format.
-    # Uses WIF internally.
-    def self.with_wif(wif_string)
-      raise ArgumentError, "Use Key.new(wif: ...) instead"
-    end
-
 
     # Accessors
     # ---------

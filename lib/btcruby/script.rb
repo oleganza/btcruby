@@ -60,17 +60,6 @@ module BTC
       end
     end
 
-    # Initializes a script with its binary representation.
-    # Returns nil if data is not a well-formed script.
-    def self.with_data(data)
-      raise ArgumentError, "Use Script.new(data: ...) instead"
-    end
-
-    # Initializes a script of form "OP_RETURN <data>"
-    def self.op_return_script(data)
-      raise ArgumentError, "Use Script.new(op_return:...) instead"
-    end
-
     # Initializes a multisignature script "OP_<M> <pubkey1> ... <pubkeyN> OP_<N> OP_CHECKMULTISIG"
     # N must be >= M, M and N should be from 1 to 16.
     # If you need a more customized transaction with OP_CHECKMULTISIG, create it using other methods.

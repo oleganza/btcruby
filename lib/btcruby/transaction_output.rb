@@ -150,18 +150,6 @@ module BTC
       end
     end
 
-    def self.with_data(data)
-      raise ArgumentError, "Use TransactionOutput.new(data: ...) instead"
-    end
-
-    def self.with_stream(stream)
-      raise ArgumentError, "Use TransactionOutput.new(stream: ...) instead"
-    end
-
-    def self.with_dictionary(dict)
-      raise ArgumentError, "Use TransactionOutput.new(dictionary: ...) instead"
-    end
-
     def data
       data = "".b
       data << BTC::WireFormat.encode_int64le(self.value)

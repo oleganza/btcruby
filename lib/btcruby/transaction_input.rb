@@ -188,18 +188,6 @@ module BTC
       @sequence = seq
     end
 
-    def self.with_data(data)
-      raise ArgumentError, "Use TransactionInput.new(data: ...) instead"
-    end
-
-    def self.with_stream(stream)
-      raise ArgumentError, "Use TransactionInput.new(stream: ...) instead"
-    end
-
-    def self.with_dictionary(dict)
-      raise ArgumentError, "Use TransactionInput.new(dictionary: ...) instead"
-    end
-
     # Returns true if this input is a coinbase input.
     def coinbase?
       return self.previous_index == INVALID_INDEX && self.previous_hash == ZERO_HASH256

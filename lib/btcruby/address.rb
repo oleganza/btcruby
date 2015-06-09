@@ -28,16 +28,6 @@
 module BTC
   class Address
 
-    # Converts base58-encoded string to a BTC::Address instance.
-    # If BTC::Address is already provided, returns it.
-    def self.with_address(string_or_address)
-      raise ArgumentError, "Use Address.parse(...) instead"
-    end
-
-    def self.with_string(base58check_string)
-      raise ArgumentError, "Use #{self}.parse(...) instead"
-    end
-
     # Decodes address from a Base58Check-encoded string
     def self.parse(string_or_address)
       raise ArgumentError, "Argument is missing" if !string_or_address
@@ -175,11 +165,6 @@ module BTC
 
     HASH160_LENGTH = 20
 
-    # Instantiates addess with the 20-byte hash
-    def self.with_data(hash, network: nil)
-      raise ArgumentError, "Use #{self}.new(hash: ...) instead"
-    end
-
     def initialize(string: nil, hash: nil, network: nil, _raw_data: nil)
       if string || _raw_data
         _raw_data ||= Base58.data_from_base58check(string)
@@ -240,11 +225,6 @@ module BTC
       end
     end
 
-    # Instantiates an address with a public key binary data
-    def self.with_public_key(public_key, network: nil)
-      raise ArgumentError, "Use #{self}.new(public_key: ...) instead"
-    end
-
     # Returns BTC::Script with data 'OP_DUP OP_HASH160 <hash> OP_EQUALVERIFY OP_CHECKSIG'
     def script
       raise ArgumentError, "BTC::PublicKeyAddress: invalid data length (must be 20 bytes)" if self.data.bytesize != 20
@@ -275,16 +255,6 @@ module BTC
       else
         super(string: string, hash: hash, network: network, _raw_data: _raw_data)
       end
-    end
-
-    # Instantiates address with a given redeem script.
-    def self.with_redeem_script(redeem_script, network: nil)
-      raise ArgumentError, "Use #{self}.new(redeem_script: ...) instead"
-    end
-
-    # Instantiates address with a given redeem script binary data.
-    def self.with_redeem_script_data(redeem_script_data, network: nil)
-      raise ArgumentError, "Use #{self}.new(hash: BTC.hash160(redeem_script.data)) instead"
     end
 
     # Returns BTC::Script with data 'OP_HASH160 <hash> OP_EQUAL'

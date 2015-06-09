@@ -174,18 +174,6 @@ module BTC
       init_with_components(version: version, inputs: txins, outputs: txouts, lock_time: lock_time)
     end
 
-    def self.with_data(data)
-      raise ArgumentError, "Use Transaction.new(data: ...) instead"
-    end
-
-    def self.with_stream(stream)
-      raise ArgumentError, "Use Transaction.new(stream: ...) instead"
-    end
-
-    def self.with_dictionary(dict)
-      raise ArgumentError, "Use Transaction.new(dictionary: ...)"
-    end
-
     # Returns true if this transaction is a coinbase transaction.
     def coinbase?
       self.inputs.size == 1 && self.inputs[0].coinbase?

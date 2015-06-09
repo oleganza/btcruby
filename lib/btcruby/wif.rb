@@ -38,16 +38,6 @@ module BTC
     end
     alias_method :eql?, :==
 
-    # private API
-    def self.with_string(base58check_string, raw_data = nil)
-      raise ArgumentError, "Use WIF.new(string: ...) instead"
-    end
-
-    # Creates an address with private key data and non-compressed pubkey flag.
-    def self.with_data(data, public_key_compressed: false, network: nil)
-      raise ArgumentError, "Use WIF.new(private_key: ...) or WIF.new(key: ...) instead"
-    end
-
     # Usage:
     # * WIF.new(string: ...)
     # * WIF.new(private_key: ..., public_key_compressed: true|false, network: ...)

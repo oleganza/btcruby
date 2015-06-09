@@ -77,14 +77,6 @@ module BTC
       )
     end
 
-    def self.with_data(data)
-      raise ArgumentError, "Use #{self}.new(data: ...) instead"
-    end
-
-    def self.with_stream(stream)
-      raise ArgumentError, "Use #{self}.new(stream: ...) instead"
-    end
-
     def initialize(data: nil,
                    stream: nil,
                    version: CURRENT_VERSION,

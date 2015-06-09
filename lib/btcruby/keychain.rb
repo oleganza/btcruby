@@ -178,17 +178,6 @@ module BTC
                      @network])
     end
 
-    # Initializes master keychain from a seed.
-    # This is the "root" keychain of the entire hierarchy.
-    def self.with_seed(seed, network: nil)
-      raise ArgumentError, "Use Keychain.new(seed: ...) instead"
-    end
-
-    # Initializes keychain from a Base58Check-encoded extended public or private key.
-    def self.with_extended_key(xkey)
-      raise ArgumentError, "Use Keychain.new(extended_key/xpub/xprv: ...) instead"
-    end
-
     # Instantiates Keychain with a binary seed or a base58-encoded extended public/private key.
     # Usage:
     # * Keychain.new(seed: ...[, network: ...])
