@@ -99,6 +99,11 @@ Starts with `xprv` for mainnet and `tprv` for testnet.
 
 An alias to `extended_private_key`.
 
+#### to_s
+
+A [Base58Check](base58.md)-encoded extended key.
+Returns `extended_private_key` if private, and `extended_public_key` if public.
+
 #### identifier
 
 A 160-bit binary identifier (aka "hash") of the keychain.
@@ -176,5 +181,3 @@ Equivalent to `derived_keychain(...).key`
 #### derived_key(*path*)
 
 Equivalent to `derived_keychain(path).key`
-
-

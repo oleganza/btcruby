@@ -113,6 +113,10 @@ module BTC
       end
     end
 
+    def to_s
+      private? ? xprv : xpub
+    end
+
     def xpub
       extended_public_key
     end
