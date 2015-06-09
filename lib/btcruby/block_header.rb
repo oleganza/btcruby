@@ -57,7 +57,7 @@ module BTC
       self.new(
         version:             1,
         previous_block_hash: ZERO_HASH256,
-        merkle_root:         BTC::Data.data_from_hex("3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"),
+        merkle_root:         BTC.from_hex("3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"),
         timestamp:           1231006505,
         bits:                0x1d00ffff,
         nonce:               0x7c2bac1d,
@@ -69,7 +69,7 @@ module BTC
       self.new(
         version:             1,
         previous_block_hash: ZERO_HASH256,
-        merkle_root:         BTC::Data.data_from_hex("3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"),
+        merkle_root:         BTC.from_hex("3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"),
         timestamp:           1296688602,
         bits:                0x1d00ffff,
         nonce:               0x18aea41a,

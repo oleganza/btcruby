@@ -147,7 +147,7 @@ module BTC
 
       if dict["prev_out"]
         if hashhex = dict["prev_out"]["hash"]
-          prevhash = BTC::Data.data_from_hex(hashhex)
+          prevhash = BTC.from_hex(hashhex)
           if prevhash.bytesize != 32
             raise ArgumentError, "prev_out.hash is not 32 bytes long."
           end
@@ -165,11 +165,11 @@ module BTC
       coinbase_data = nil
       script = nil
       if hex = dict["coinbase"]
-        coinbase_data = BTC::Data.data_from_hex(hex)
+        coinbase_data = BTC.from_hex(hex)
       elsif dict["scriptSig"]
         if dict["scriptSig"].is_a?(Hash)
           if hex = dict["scriptSig"]["hex"]
-            script = BTC::Script.new(data: BTC::Data.data_from_hex(hex))
+            script = BTC::Script.new(data: BTC.from_hex(hex))
           end
         end
       end
@@ -224,16 +224,16 @@ module BTC
       dict = {}
 
       dict["prev_out"] = {
-        "hash" => BTC::Data.hex_from_data(self.previous_hash),
+        "hash" => BTC.to_hex(self.previous_hash),
         "n"    => self.previous_index
       }
 
       if self.coinbase?
-        dict["coinbase"] = BTC::Data.hex_from_data(self.coinbase_data)
+        dict["coinbase"] = BTC.to_hex(self.coinbase_data)
       else
         dict["scriptSig"] = {
           "asm" => self.signature_script.to_s,
-          "hex" => BTC::Data.hex_from_data(self.signature_script.data)
+          "hex" => BTC.to_hex(self.signature_script.data)
         }
       end
 
@@ -247,7 +247,7 @@ module BTC
     end
 
     def to_s
-      BTC::Data.hex_from_data(self.data)
+      BTC.to_hex(self.data)
     end
 
     def ==(other)

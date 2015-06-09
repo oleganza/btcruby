@@ -25,7 +25,7 @@ module BTC
         data = BTC::Data.ensure_binary_encoding(data)
         
         raise ArgumentError, "Data must be at least 6 bytes long (4 bytes prefix and 2 bytes for varints)" if data.bytesize < 6
-        raise ArgumentError, "Prefix is invalid. Expected #{BTC::Data.hex_from_data(PREFIX_V1)}" if data[0, PREFIX_V1.bytesize] != PREFIX_V1
+        raise ArgumentError, "Prefix is invalid. Expected #{BTC.to_hex(PREFIX_V1)}" if data[0, PREFIX_V1.bytesize] != PREFIX_V1
 
         offset = PREFIX_V1.bytesize
         count, bytesread = WireFormat.read_varint(data: data, offset: offset)

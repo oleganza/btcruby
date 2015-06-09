@@ -142,7 +142,7 @@ module BTC
       @script = nil
       if dict["scriptPubKey"] && dict["scriptPubKey"].is_a?(Hash)
         if hex = dict["scriptPubKey"]["hex"]
-          @script = Script.new(data: BTC::Data.data_from_hex(hex))
+          @script = Script.new(data: BTC.from_hex(hex))
           if !@script
             raise ArgumentError, "Failed to parse script from scriptPubKey.hex"
           end
@@ -162,7 +162,7 @@ module BTC
         "value" => CurrencyFormatter.btc_long_formatter.string_from_number(self.value),
         "scriptPubKey" => {
           "asm" => self.script.to_s,
-          "hex" => BTC::Data.hex_from_data(self.script.data)
+          "hex" => BTC.to_hex(self.script.data)
         }
       }
     end
@@ -270,7 +270,7 @@ module BTC
     end
 
     def to_s
-      BTC::Data.hex_from_data(self.data)
+      BTC.to_hex(self.data)
     end
 
     def ==(other)

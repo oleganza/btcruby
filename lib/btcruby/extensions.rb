@@ -14,12 +14,12 @@ module BTC
 
     # Converts binary data into hex string
     def to_hex
-      BTC::Data.hex_from_data(self)
+      BTC.to_hex(self)
     end
 
     # Converts hex string into a binary data
     def from_hex
-      BTC::Data.data_from_hex(self)
+      BTC.from_hex(self)
     end
 
     # Various hash functions

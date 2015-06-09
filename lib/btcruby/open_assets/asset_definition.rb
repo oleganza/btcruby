@@ -69,7 +69,7 @@ module BTC
     end
     
     def sha256
-      BTC::Data.hex_from_data(BTC.sha256(json))
+      BTC.to_hex(BTC.sha256(json))
     end
   end
 end

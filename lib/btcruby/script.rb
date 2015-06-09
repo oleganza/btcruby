@@ -20,7 +20,7 @@ module BTC
                    public_keys: nil, signatures_required: nil # multisig
                    )
       if data || hex
-        data ||= BTC::Data.data_from_hex(hex)
+        data ||= BTC.from_hex(hex)
         data = BTC::Data.ensure_binary_encoding(data)
         @chunks = []
         offset = 0
@@ -266,7 +266,7 @@ module BTC
     end
 
     def to_hex
-      BTC::Data.hex_from_data(self.data)
+      BTC.to_hex(self.data)
     end
 
     # Returns an array of opcodes or pushdata strings.
@@ -629,7 +629,7 @@ module BTC
           # Wrap in single quotes. Why not double? Because they are already used in JSON and we don't want to multiply the mess.
           string = "'#{string}'"
         else
-          string = BTC::Data.hex_from_data(pushdata)
+          string = BTC.to_hex(pushdata)
           # Shorter than 128-bit chunks are wrapped in square brackets to avoid ambiguity with big all-decimal numbers.
           if (pushdata.bytesize < 16)
               string = "[#{string}]"

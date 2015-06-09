@@ -152,7 +152,7 @@ module BTC
         buf = FFI::MemoryPointer.from_string(pubkey)
         eckey = o2i_ECPublicKey(pointer_to_pointer(eckey), pointer_to_pointer(buf), buf.size-1)
         if eckey.null?
-          raise BTCError, "OpenSSL failed to create EC_KEY with public key: #{BTC::Data.hex_from_data(pubkey).inspect}"
+          raise BTCError, "OpenSSL failed to create EC_KEY with public key: #{BTC.to_hex(pubkey).inspect}"
         end
 
         # 2. Extract re-compressed pubkey from EC_KEY
@@ -358,7 +358,7 @@ module BTC
         buf = FFI::MemoryPointer.from_string(signature)
         psig = d2i_ECDSA_SIG(nil, pointer_to_pointer(buf), buf.size-1)
         if psig.null?
-          raise BTCError, "OpenSSL failed to read ECDSA signature with DER: #{BTC::Data.hex_from_data(signature).inspect}"
+          raise BTCError, "OpenSSL failed to read ECDSA signature with DER: #{BTC.to_hex(signature).inspect}"
         end
 
         sig = ECDSA_SIG.new(psig) # read sig from its pointer
@@ -400,7 +400,7 @@ module BTC
         buf = FFI::MemoryPointer.from_string(public_key)
         eckey = o2i_ECPublicKey(pointer_to_pointer(eckey), pointer_to_pointer(buf), buf.size - 1)
         if eckey.null?
-          raise BTCError, "OpenSSL failed to create EC_KEY with public key: #{BTC::Data.hex_from_data(public_key).inspect}"
+          raise BTCError, "OpenSSL failed to create EC_KEY with public key: #{BTC.to_hex(public_key).inspect}"
         end
 
         # -1 = error, 0 = bad sig, 1 = good
@@ -413,9 +413,9 @@ module BTC
         end
 
         if result == 0
-          Diagnostics.current.add_message("OpenSSL detected invalid ECDSA signature. Signature: #{BTC::Data.hex_from_data(signature).inspect}; Hash: #{BTC::Data.hex_from_data(hash).inspect}; Pubkey: #{BTC::Data.hex_from_data(public_key).inspect}")
+          Diagnostics.current.add_message("OpenSSL detected invalid ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}")
         else
-          raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC::Data.hex_from_data(signature).inspect}; Hash: #{BTC::Data.hex_from_data(hash).inspect}; Pubkey: #{BTC::Data.hex_from_data(public_key).inspect}"
+          raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}"
         end
         return false
       end

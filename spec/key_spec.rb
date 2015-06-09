@@ -3,7 +3,7 @@ require_relative 'spec_helper'
 describe BTC::Key do
 
   def verify_rfc6979_nonce(keyhex, msg, khex)
-    keybin = BTC::Data.data_from_hex(keyhex)
+    keybin = BTC.from_hex(keyhex)
     hash = BTC.sha256(msg)
     k = BTC::OpenSSL.rfc6979_ecdsa_nonce(hash, keybin)
     k.to_hex.must_equal khex
@@ -86,7 +86,7 @@ describe BTC::Key do
   end
 
   it "should support uncompressed public keys" do
-    k = BTC::Key.new(private_key: BTC::Data.data_from_hex("c4bbcb1fbec99d65bf59d85c8cb62ee2db963f0fe106f483d9afa73bd4e39a8a"), public_key_compressed: false)
+    k = BTC::Key.new(private_key: BTC.from_hex("c4bbcb1fbec99d65bf59d85c8cb62ee2db963f0fe106f483d9afa73bd4e39a8a"), public_key_compressed: false)
     k.private_key.to_hex.must_equal "c4bbcb1fbec99d65bf59d85c8cb62ee2db963f0fe106f483d9afa73bd4e39a8a"
     k.public_key.to_hex.must_equal "0478d430274f8c5ec1321338151e9f27f4c676a008bdf8638d07c0b6be9ab35c71a1518063243acd4dfe96b66e3f2ec8013c8e072cd09b3834a19f81f659cc3455"
     k.address.to_s.must_equal "1JwSSubhmg6iPtRjtyqhUYYH7bZg3Lfy1T"

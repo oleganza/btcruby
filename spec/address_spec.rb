@@ -17,7 +17,7 @@ describe BTC::Address do
     address.script.to_s.must_equal "OP_DUP OP_HASH160 5a73e920b7836c74f9e740a5bb885e8580557038 OP_EQUALVERIFY OP_CHECKSIG"
 
     address.to_s.must_equal("19FGfswVqxNubJbh1NW8A4t51T9x9RDVWQ")
-    address.data.must_equal(BTC::Data.data_from_hex("5a73e920b7836c74f9e740a5bb885e8580557038"))
+    address.data.must_equal(BTC.from_hex("5a73e920b7836c74f9e740a5bb885e8580557038"))
   end
 
   it "should decode/encode testnet pay-to-pubkey-hash address" do

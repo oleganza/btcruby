@@ -97,7 +97,7 @@ module BTC
     end
 
     def inspect
-      %{#<#{self.class}:#{to_s} privkey:#{BTC::Data.hex_from_data(data)} (#{@public_key_compressed ? '' : 'un'}compressed pubkey)>}
+      %{#<#{self.class}:#{to_s} privkey:#{BTC.to_hex(data)} (#{@public_key_compressed ? '' : 'un'}compressed pubkey)>}
     end
 
   end

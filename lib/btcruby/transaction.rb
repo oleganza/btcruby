@@ -97,7 +97,7 @@ module BTC
                    fee: nil,
                    inputs_amount: nil)
 
-      data = BTC::Data.data_from_hex(hex) if hex
+      data = BTC.from_hex(hex) if hex
       stream = StringIO.new(data) if data
       if stream
         init_with_stream(stream)
@@ -451,7 +451,7 @@ module BTC
 
     # Returns hex representation of the transaction.
     def to_hex
-      BTC::Data.hex_from_data(self.data)
+      BTC.to_hex(self.data)
     end
 
     # Makes a deep copy of a transaction (all inputs and outputs are copied too).

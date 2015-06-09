@@ -1,10 +1,15 @@
 require 'securerandom'
 
 module BTC
+  
+  # This allows doing `BTC.to_hex(...)`
+  module Data; end
+  include Data
+  extend self
+  
   module Data
     extend self
-    include HashFunctions # obsolete, left for backwards compatibility
-
+    
     HEX_PACK_CODE = "H*".freeze
     BYTE_PACK_CODE = "C*".freeze
 
@@ -28,6 +33,14 @@ module BTC
     def hex_from_data(data)
       raise ArgumentError, "Data is missing" if !data
       return data.unpack(HEX_PACK_CODE).first
+    end
+    
+    def to_hex(data)
+      hex_from_data(data)
+    end
+    
+    def from_hex(hex)
+      data_from_hex(hex)
     end
 
     # Converts a binary string to an array of bytes (list of integers).
