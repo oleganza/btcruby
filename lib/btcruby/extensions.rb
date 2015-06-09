@@ -47,16 +47,6 @@ module BTC
       BTC.sha512(self)
     end
 
-    def hmac_sha256(data: nil, key: nil)
-      raise ArgumentError, "Either data or key must be specified" if !data && !key
-      BTC.hmac_sha256(data: data || self, key: key || self)
-    end
-
-    def hmac_sha512(data: nil, key: nil)
-      raise ArgumentError, "Either data or key must be specified" if !data && !key
-      BTC.hmac_sha512(data: data || self, key: key || self)
-    end
-
   end
 end
 

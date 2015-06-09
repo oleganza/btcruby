@@ -58,19 +58,3 @@ Returns a binary string compressed using two passes of [SHA-256](http://en.wikip
 #### hash160
 
 Returns a binary string compressed using composition `ripemd160(sha256(string))`. Known in Bitcoin as *Hash160*.
-
-#### hmac_sha256(key: *String*)
-
-Returns a result of [HMAC](http://en.wikipedia.org/wiki/Hash-based_message_authentication_code) using [SHA-256](http://en.wikipedia.org/wiki/SHA-2) hash using `self` as data.
-
-#### hmac_sha256(data: *String*)
-
-Returns a result of [HMAC](http://en.wikipedia.org/wiki/Hash-based_message_authentication_code) using [SHA-256](http://en.wikipedia.org/wiki/SHA-2) hash using `self` as key.
-
-#### hmac_sha512(key: *String*)
-
-Returns a result of [HMAC](http://en.wikipedia.org/wiki/Hash-based_message_authentication_code) using [SHA-512](http://en.wikipedia.org/wiki/SHA-2) hash using `self` as data.
-
-#### hmac_sha512(data: *String*, key: *String*)
-
-Returns a result of [HMAC](http://en.wikipedia.org/wiki/Hash-based_message_authentication_code) using [SHA-512](http://en.wikipedia.org/wiki/SHA-2) hash using `self` as key.
