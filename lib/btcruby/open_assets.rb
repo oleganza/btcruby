@@ -15,6 +15,7 @@
 # * Supporting stock split (AssetV2 is issued by consuming AssetV1, validating software must validate AssetV2 accordingly).
 # * Supporting key rotation (can be done using the same technique as with stock split). Maybe use metadata to link to a previous asset.
 require_relative 'open_assets/asset_id.rb'
+require_relative 'open_assets/issuance_id.rb'
 require_relative 'open_assets/asset_address.rb'
 require_relative 'open_assets/asset.rb'
 require_relative 'open_assets/asset_marker.rb'

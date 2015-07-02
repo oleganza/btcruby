@@ -193,7 +193,7 @@ describe BTC::Address do
     asset_addr_string = "akB4NBW9UuCmHuepksob6yfZs6naHtRCPNy"
     btc_addr = Address.parse(btc_addr_string)
     asset_addr = Address.parse(asset_addr_string)
-    
+
     ->{ BTC::AssetAddress.parse(btc_addr_string) }.must_raise ArgumentError
     ->{ BTC::AssetAddress.parse(btc_addr) }.must_raise ArgumentError
     

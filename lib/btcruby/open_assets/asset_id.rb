@@ -1,13 +1,14 @@
 module BTC
   # Represents an Asset ID.
   class AssetID < BTC::Hash160Address
+    register_class self
     
     def self.mainnet_version
-      23 # "A" prefix
+      23 # 'A' prefix
     end
 
     def self.testnet_version
-      115
+      115 # 'o' prefix
     end
 
     # Instantiates AssetID with output, output script or raw hash.

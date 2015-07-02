@@ -1,6 +1,9 @@
 module BTC
   # Represents an Asset Address, where the assets can be sent.
   class AssetAddress < BTC::Address
+    
+    register_class self
+    
     NAMESPACE = 0x13
     
     def self.mainnet_version
@@ -18,7 +21,7 @@ module BTC
         _raw_data ||= Base58.data_from_base58check(string)
         raise FormatError, "Too short AssetAddress" if _raw_data.bytesize < 2
         raise FormatError, "Invalid namespace for AssetAddress" if _raw_data.bytes[0] != NAMESPACE
-        @bitcoin_address = Address.parse_raw_data(_raw_data[1..-1])
+        @bitcoin_address = BTC::Address.mux_parse_raw_data(_raw_data[1..-1])
         @base58check_string = string
       elsif bitcoin_address
         @base58check_string = nil

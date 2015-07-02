@@ -27,7 +27,8 @@
 #
 module BTC
   class Address
-
+    @@registered_classes = []
+    
     # Decodes address from a Base58Check-encoded string
     def self.parse(string_or_address)
       raise ArgumentError, "Argument is missing" if !string_or_address
@@ -39,27 +40,46 @@ module BTC
       string = string_or_address
       raise ArgumentError, "String is expected" if !string.is_a?(String)
       raw_data = Base58.data_from_base58check(string)
-      result = parse_raw_data(raw_data, string)
+      self.mux_parse_raw_data(raw_data, string)
+    end
+    
+    # Attempts to parse with a proper subclass
+    def self.mux_parse_raw_data(raw_data, _string = nil)
+      result = nil
+      @@registered_classes.each do |cls|
+        if result = cls.parse_raw_data(raw_data, _string)
+          break
+        end
+      end
+      if !result
+        raise ArgumentError, "Unknown kind of address: #{_string}. Registered types: #{@@registered_classes}"
+      end
       if !result.is_a?(self)
         raise ArgumentError, "Argument must be an instance of #{self}, not #{result.class}."
       end
-      result
+      return result
     end
 
     # Internal method to parse address from raw binary data.
+    # Subclasses should implement to return a valid instance or nil if the provided data does not correspond to that subclass.
+    # Default implementation assumes 1-byte version prefix and implementation of mainnet_version and testnet_version class methods.
     def self.parse_raw_data(raw_data, _string = nil)
       raise ArgumentError, "Raw data is missing" if !raw_data
       if raw_data.bytesize < 2 # should contain at least a version byte and some content
         raise FormatError, "Failed to decode BTC::Address: raw data is too short"
       end
       version = raw_data.bytes.first
-      address_class = version_to_class_dictionary[version]
-      if !address_class
-        raise FormatError, "Failed to decode BTC::Address: unknown version #{version}"
+      if self.mainnet_version == version || self.testnet_version == version
+        return self.new(string: _string, _raw_data: raw_data)
       end
-      return address_class.new(string: _string, _raw_data: raw_data)
+      return nil
     end
-
+    
+    # Subclasses should register themselves so they can be parsed via BTC::Address.parse()
+    def self.register_class(cls)
+      @@registered_classes << cls
+    end
+    
     def network
       @network ||= if !@version
         BTC::Network.default
@@ -140,21 +160,21 @@ module BTC
       raise Exception, "Override data_for_base58check_encoding in #{self.class} to return complete data to be base58-encoded."
     end
 
-    private
-
-    def self.version_to_class_dictionary
-      @version_to_class_dictionary ||= [
-        PublicKeyAddress,
-        ScriptHashAddress,
-        WIF,
-        AssetID,
-        AssetAddress
-      ].inject({}) do |dict, cls|
-        dict[cls.mainnet_version] = cls
-        dict[cls.testnet_version] = cls
-        dict
-      end
-    end
+    # private
+    # def self.version_to_class_dictionary
+    #   @version_to_class_dictionary ||= [
+    #     PublicKeyAddress,
+    #     ScriptHashAddress,
+    #     WIF,
+    #     AssetID,
+    #     IssuanceID,
+    #     AssetAddress,
+    #   ].inject({}) do |dict, cls|
+    #     dict[cls.mainnet_version] = cls
+    #     dict[cls.testnet_version] = cls
+    #     dict
+    #   end
+    # end
   end
 
   class BitcoinPaymentAddress < Address
@@ -201,6 +221,8 @@ module BTC
 
   # Standard pulic key (P2PKH) address (e.g. 19FGfswVqxNubJbh1NW8A4t51T9x9RDVWQ)
   class PublicKeyAddress < Hash160Address
+    
+    register_class self
 
     def self.mainnet_version
       0
@@ -235,6 +257,8 @@ module BTC
 
   # P2SH address (e.g. 3NukJ6fYZJ5Kk8bPjycAnruZkE5Q7UW7i8)
   class ScriptHashAddress < Hash160Address
+
+    register_class self
 
     def self.mainnet_version
       5
