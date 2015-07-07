@@ -20,7 +20,7 @@ module BTC
       if string
         _raw_data ||= Base58.data_from_base58check(string)
         raise FormatError, "Too short AssetAddress" if _raw_data.bytesize < 2
-        raise FormatError, "Invalid namespace for AssetAddress" if _raw_data.bytes[0] != NAMESPACE
+        raise FormatError, "Invalid namespace for AssetAddress" if _raw_data.bytes[0] != self.class.mainnet_version
         @bitcoin_address = BTC::Address.mux_parse_raw_data(_raw_data[1..-1])
         @base58check_string = string
       elsif bitcoin_address
@@ -46,7 +46,7 @@ module BTC
     end
 
     def data_for_base58check_encoding
-      BTC::Data.data_from_bytes([NAMESPACE]) + @bitcoin_address.data_for_base58check_encoding
+      BTC::Data.data_from_bytes([self.class.mainnet_version]) + @bitcoin_address.data_for_base58check_encoding
     end
   end
 end

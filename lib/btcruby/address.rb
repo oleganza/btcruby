@@ -213,7 +213,7 @@ module BTC
     end
 
     def data_for_base58check_encoding
-      BTC::Data.data_from_bytes([self.version]) + @data
+      BTC.data_from_bytes([self.version].flatten) + @data
     end
   end
 

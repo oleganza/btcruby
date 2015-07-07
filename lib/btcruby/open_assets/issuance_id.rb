@@ -13,8 +13,6 @@ module BTC
       125 # 's' prefix
     end
 
-    # Instantiates AssetID with output, output script or raw hash.
-    # To compute an Asset ID for the Asset Definition file, use `trim_script_prefix: true`.
     def initialize(string: nil, hash: nil, network: nil, outpoint: nil, amount: nil, _raw_data: nil)
       if outpoint || amount
         raise ArgumentError, "Outpoint is missing" if !outpoint

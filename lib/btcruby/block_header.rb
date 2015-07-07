@@ -51,8 +51,6 @@ module BTC
     # The number of blocks that have been processed since the previous block (including the block itself).
     attr_accessor :confirmations
 
-    attr_accessor :my_name
-
     def self.genesis_mainnet
       self.new(
         version:             1,
