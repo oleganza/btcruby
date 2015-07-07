@@ -16,3 +16,5 @@ DerivedData
 *.xcuserstate
 *.xcodeproj
 *.xcodeproj/
+*.gem
+.ruby-version
