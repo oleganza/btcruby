@@ -34,6 +34,7 @@ require_relative 'btcruby/transaction_builder.rb'
 require_relative 'btcruby/proof_of_work.rb'
 require_relative 'btcruby/block_header.rb'
 require_relative 'btcruby/block.rb'
+require_relative 'btcruby/merkle_tree.rb'
 require_relative 'btcruby/open_assets.rb'
 
 # TODO:

@@ -52,6 +52,18 @@ $ bundle install
 $ rake
 ```
 
+## How to publish a gem
+
+1. Edit version.rb to bump the version.
+2. Update `RELEASE_NOTES.md`.
+3. Commit changes and tag it with new version.
+4. Generate and publish the gem:
+
+```
+$ gem build btcruby
+$ gem push btcruby-<version>.gem
+```
+
 ## Authors
 
 * [Oleg Andreev](http://oleganza.com/)
