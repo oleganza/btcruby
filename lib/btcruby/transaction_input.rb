@@ -255,6 +255,7 @@ module BTC
       return true if self.data == other.data
       return false
     end
+    alias_method :eql?, :==
 
     # Makes a deep copy of a transaction input
     def dup

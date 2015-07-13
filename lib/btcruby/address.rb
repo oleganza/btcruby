@@ -111,9 +111,13 @@ module BTC
     # Two instances are equal when they have the same contents and versions.
     def ==(other)
       return false if !other
-      self.data == other.data && self.version == other.version
+      data == other.data && version == other.version
     end
     alias_method :eql?, :==
+    
+    def hash
+      data.hash
+    end
 
     # Returns Base58Check representation of an address.
     def to_s

@@ -22,7 +22,17 @@ module BTC
     def outpoint_id
       %{#{transaction_id}:#{index}}
     end
-    
+
+    def ==(other)
+      index == other.index &&
+      transaction_hash == other.transaction_hash
+    end
+    alias_method :eql?, :==
+
+    def hash
+      transaction_hash.hash ^ index
+    end
+
     def to_s
       outpoint_id
     end

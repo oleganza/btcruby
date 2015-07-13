@@ -275,9 +275,10 @@ module BTC
 
     def ==(other)
       return true if super(other)
-      return true if self.data == other.data
+      return true if data == other.data
       return false
     end
+    alias_method :eql?, :==
 
     # Makes a deep copy of a transaction output
     def dup
