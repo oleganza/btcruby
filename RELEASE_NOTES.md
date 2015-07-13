@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.0.6 (July 13, 2015)
+--------------------
+
+* Consistent aliasing between `==` and `eql?`
+* `TransactionOutpoint` implements `hash` method so it can be used as a key in a dictionary.
+
 1.0.5 (July 8, 2015)
 --------------------
 
