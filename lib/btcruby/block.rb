@@ -82,7 +82,7 @@ module BTC
                    time: nil,
                    bits: 0,
                    nonce: 0,
-                   transactions: [],
+                   transactions: nil,
 
                    # optional attributes
                    height: nil,
@@ -103,6 +103,7 @@ module BTC
       )
 
       @transactions = transactions if transactions
+      @transactions ||= []
     end
 
     def init_with_stream(stream)
