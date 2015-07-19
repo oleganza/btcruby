@@ -2,6 +2,13 @@
 BTCRuby Release Notes
 =====================
 
+1.0.7 (July 19, 2015)
+--------------------
+
+* Script `subscript` and `find_and_delete` APIs.
+* Fixed block parsing API (list of transactions was always empty).
+* Added OP_CHECKLOCKTIMEVERIFY.
+
 1.0.6 (July 13, 2015)
 --------------------
 
