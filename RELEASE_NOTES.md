@@ -2,6 +2,11 @@
 BTCRuby Release Notes
 =====================
 
+1.0.8 (July 19, 2015)
+--------------------
+
+* Added `verify_hashtype` flag to optionally check hashtype byte.
+
 1.0.7 (July 19, 2015)
 --------------------
 
