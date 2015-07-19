@@ -62,5 +62,33 @@ describe BTC::Script do
 
   end
 
+  it "should support subscripts" do
+    s = Script.new << OP_DUP << OP_HASH160 << OP_CODESEPARATOR << "some data" << OP_EQUALVERIFY << OP_CHECKSIG
+    s.subscript(0..-1).must_equal s
+    s[0..-1].must_equal s
+    s.subscript(3..-1).must_equal(Script.new << "some data" << OP_EQUALVERIFY << OP_CHECKSIG)
+    s[3..-1].must_equal(Script.new << "some data" << OP_EQUALVERIFY << OP_CHECKSIG)
+  end
+
+
+  it "removing subscript does not modify receiver" do
+    s = Script.new << OP_DUP << OP_HASH160 << OP_CODESEPARATOR << "some data" << OP_EQUALVERIFY << OP_CHECKSIG
+    s1 = s.dup
+    s2 = s1.find_and_delete(Script.new << OP_HASH160)
+    s.must_equal s1
+    s2.must_equal(Script.new << OP_DUP << OP_CODESEPARATOR << "some data" << OP_EQUALVERIFY << OP_CHECKSIG)
+  end
+
+  it "should find subsequence" do
+    s = Script.new << OP_1 << OP_3 << OP_1 << OP_2 << OP_1 << OP_2 << OP_1 << OP_3
+    s2 = s.find_and_delete(Script.new << OP_1 << OP_2 << OP_1)
+    s2.must_equal(Script.new << OP_1 << OP_3 << OP_2 << OP_1 << OP_3)
+  end
+
+  it "should not find-and-delete non-matching encoding for the same pushdata" do
+    s = Script.new.append_pushdata("foo").append_pushdata("foo", opcode:OP_PUSHDATA1)
+    s2 = s.find_and_delete(Script.new << "foo")
+    s2.must_equal(Script.new.append_pushdata("foo", opcode:OP_PUSHDATA1))
+  end
 
 end

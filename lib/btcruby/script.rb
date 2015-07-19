@@ -238,7 +238,7 @@ module BTC
     # and a new script instance is returned.
     def without_dropped_prefix_data
       if dropped_prefix_data
-        return Script.new << @chunks[2..-1]
+        return self.class.new << @chunks[2..-1]
       end
       self
     end
@@ -278,7 +278,7 @@ module BTC
 
     # Complete copy of a script.
     def dup
-      BTC::Script.new(data: self.data)
+      self.class.new(data: self.data)
     end
 
     def ==(other)
@@ -314,7 +314,7 @@ module BTC
     # Wraps the recipient into an output P2SH script
     # (OP_HASH160 <20-byte hash of the recipient> OP_EQUAL).
     def p2sh_script
-      Script.new << OP_HASH160 << BTC.hash160(self.data) << OP_EQUAL
+      self.class.new << OP_HASH160 << BTC.hash160(self.data) << OP_EQUAL
     end
 
 
@@ -326,18 +326,18 @@ module BTC
     def simulated_signature_script(strict: true)
       if public_key_hash_script?
          # assuming non-compressed pubkeys to be conservative
-        return Script.new << Script.simulated_signature(hashtype: SIGHASH_ALL) << Script.simulated_uncompressed_pubkey
+        return self.class.new << Script.simulated_signature(hashtype: SIGHASH_ALL) << Script.simulated_uncompressed_pubkey
 
       elsif public_key_script?
-        return Script.new << Script.simulated_signature(hashtype: SIGHASH_ALL)
+        return self.class.new << Script.simulated_signature(hashtype: SIGHASH_ALL)
 
       elsif script_hash_script? && !strict
         # This is a wild approximation, but works well if most p2sh scripts are 2-of-3 multisig scripts.
         # If you have a very particular smart contract scheme you should not use TransactionBuilder which estimates fees this way.
-        return Script.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*2 << Script.simulated_multisig_script(2,3).data
+        return self.class.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*2 << Script.simulated_multisig_script(2,3).data
 
       elsif multisig_script?
-        return Script.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*self.multisig_signatures_required
+        return self.class.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*self.multisig_signatures_required
       else
         return nil
       end
@@ -360,7 +360,7 @@ module BTC
 
     # Returns a dummy script that simulates m-of-n multisig script
     def self.simulated_multisig_script(m,n)
-      Script.new <<
+      self.new <<
         Opcode.opcode_for_small_integer(m) <<
         [simulated_uncompressed_pubkey]*n  << # assuming non-compressed pubkeys to be conservative
         Opcode.opcode_for_small_integer(n) <<
@@ -384,9 +384,9 @@ module BTC
     # Appends a pushdata opcode with the most compact encoding.
     # Optional opcode may be equal to OP_PUSHDATA1, OP_PUSHDATA2, or OP_PUSHDATA4.
     # ArgumentError is raised if opcode does not represent a given data length.
-    def append_pushdata(pushdata, opcode: nil)
-      raise ArgumentError, "No pushdata is given" if !pushdata
-      encoded_pushdata = self.class.encode_pushdata(pushdata, opcode: opcode)
+    def append_pushdata(data, opcode: nil)
+      raise ArgumentError, "No data provided" if !data
+      encoded_pushdata = self.class.encode_pushdata(data, opcode: opcode)
       if !encoded_pushdata
         raise ArgumentError, "Cannot encode pushdata with opcode #{opcode}"
       end
@@ -433,11 +433,7 @@ module BTC
           self << element
         end
       elsif object.is_a?(Chunk)
-        if object.pushdata?
-          append_pushdata(object.pushdata)
-        else
-          append_opcode(object.opcode)
-        end
+        @chunks << object
       else
         raise ArgumentError, "Operand must be an integer, a string a BTC::Script instance or an array of any of those."
       end
@@ -449,9 +445,40 @@ module BTC
       self.dup << other
     end
 
+    # Same arguments as with Array#[].
+    def subscript(*args)
+      self.class.new << chunks[*args]
+    end
+    alias_method :[], :subscript
 
-
-
+    # Removes chunks matching subscript byte-for-byte and returns a new script instance with subscript removed.
+    # So if pushdata items are encoded differently, they won't match.
+    # Consensus-critical code.
+    def find_and_delete(subscript)
+      subscript.is_a?(Script) or raise ArgumentError,"Argument must be an instance of BTC::Script"
+      # Replacing [a b a]
+      # Script: a b b a b a b a c
+      # Result: a b b       b a c
+      subscriptsize = subscript.chunks.size
+      buf = []
+      i = 0
+      result = self.class.new
+      chunks.each do |chunk|
+        if chunk == subscript.chunks[i]
+          buf << chunk
+          i+=1
+          if i == subscriptsize # matched the whole subscript
+            i = 0
+            buf.clear
+          end
+        else
+          i = 0
+          result << buf
+          result << chunk
+        end
+      end
+      result
+    end
 
 
     # Private API
@@ -706,6 +733,10 @@ module BTC
 
       def initialize(raw_data)
         @raw_data = raw_data
+      end
+
+      def ==(other)
+        @raw_data == other.raw_data
       end
 
       protected
