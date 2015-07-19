@@ -248,7 +248,7 @@ module BTC
     # Checks if this signature with appended script hash type is well-formed.
     # Logs detailed info using Diagnostics and returns true or false.
     # Set verify_lower_s:false when processing incoming blocks.
-    def self.validate_script_signature(data, verify_lower_s: true)
+    def self.validate_script_signature(data, verify_lower_s: true, verify_hashtype: true)
       # See https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
       # A canonical signature exists of: <30> <total len> <02> <len R> <R> <02> <len S> <S> <hashtype>
       # Where R and S are not negative (their first byte has its highest bit not set), and not
@@ -275,11 +275,13 @@ module BTC
 
       bytes = data.bytes
 
-      hashtype = bytes[length - 1] & (~(SIGHASH_ANYONECANPAY))
+      if verify_hashtype
+        hashtype = bytes[length - 1] & (~(SIGHASH_ANYONECANPAY))
 
-      if hashtype < SIGHASH_ALL || hashtype > SIGHASH_SINGLE
-        Diagnostics.current.add_message("Non-canonical signature: unknown hashtype byte.")
-        return false
+        if hashtype < SIGHASH_ALL || hashtype > SIGHASH_SINGLE
+          Diagnostics.current.add_message("Non-canonical signature: unknown hashtype byte.")
+          return false
+        end
       end
 
       if bytes[0] != 0x30
