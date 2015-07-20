@@ -17,7 +17,7 @@ module BTC
       if outpoint || amount
         raise ArgumentError, "Outpoint is missing" if !outpoint
         raise ArgumentError, "Amount is missing" if !amount || amount < 0
-        data = outpoint.transaction_hash + WireFormat.encode_uint32le(outpoint.index) + WireFormat.encode_uint64le(amount) 
+        data = outpoint.transaction_hash + WireFormat.encode_uint32be(outpoint.index) + WireFormat.encode_uint64le(amount) 
         super(hash: BTC.hash160(data), network: network)
       else
         super(string: string, hash: hash, network: network, _raw_data: _raw_data)
