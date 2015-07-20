@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.0.9 (July 20, 2015)
+--------------------
+
+* Added `int32be` encoding support.
+
+
 1.0.8 (July 19, 2015)
 --------------------
 
