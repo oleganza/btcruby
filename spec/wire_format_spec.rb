@@ -212,6 +212,20 @@ describe BTC::WireFormat do
     verify_fixint(:uint32le, 0xdeadbeef, "efbeadde")
     verify_fixint(:uint32le, 0xffffffff, "ffffffff")
 
+    verify_fixint(:int32le, 0, "00000000")
+    verify_fixint(:int32le, 0x7f, "7f000000")
+    verify_fixint(:int32le, 0x80, "80000000")
+    verify_fixint(:int32le, 0xbeef, "efbe0000")
+    verify_fixint(:int32le, 0x7eadbeef, "efbead7e")
+    verify_fixint(:int32le, 0x7fffffff, "ffffff7f")
+    
+    verify_fixint(:int32be, 0, "00000000")
+    verify_fixint(:int32be, 0x7f, "0000007f")
+    verify_fixint(:int32be, 0x80, "00000080")
+    verify_fixint(:int32be, 0xbeef, "0000beef")
+    verify_fixint(:int32be, 0x7eadbeef, "7eadbeef")
+    verify_fixint(:int32be, 0x7fffffff, "7fffffff")
+
     verify_fixint(:uint64le, 0, "0000000000000000")
     verify_fixint(:uint64le, 0x7f, "7f00000000000000")
     verify_fixint(:uint64le, 0x80, "8000000000000000")

@@ -262,6 +262,7 @@ module BTC
     PACK_FORMAT_UINT32LE = "L<".freeze
     PACK_FORMAT_INT32LE  = "l<".freeze
     PACK_FORMAT_UINT32BE = "L>".freeze # used in BIP32
+    PACK_FORMAT_INT32BE  = "l>".freeze
     PACK_FORMAT_UINT64LE = "Q<".freeze
     PACK_FORMAT_INT64LE  = "q<".freeze
 
@@ -294,6 +295,10 @@ module BTC
     def read_uint32be(data: nil, stream: nil, offset: 0) # used in BIP32
       _read_fixint(name: :uint32be, length: 4, pack_format: PACK_FORMAT_UINT32BE, data: data, stream: stream, offset: offset)
     end
+    
+    def read_int32be(data: nil, stream: nil, offset: 0)
+      _read_fixint(name: :int32be,  length: 4, pack_format: PACK_FORMAT_INT32BE,  data: data, stream: stream, offset: offset)
+    end
 
     def read_uint64le(data: nil, stream: nil, offset: 0)
       _read_fixint(name: :uint64le, length: 8, pack_format: PACK_FORMAT_UINT64LE, data: data, stream: stream, offset: offset)
@@ -308,6 +313,7 @@ module BTC
     def encode_int8(int);     [int].pack(PACK_FORMAT_INT8);     end
     def encode_uint16le(int); [int].pack(PACK_FORMAT_UINT16LE); end
     def encode_int16le(int);  [int].pack(PACK_FORMAT_INT16LE);  end
+    def encode_int32be(int);  [int].pack(PACK_FORMAT_INT32BE);  end
     def encode_uint32le(int); [int].pack(PACK_FORMAT_UINT32LE); end
     def encode_int32le(int);  [int].pack(PACK_FORMAT_INT32LE);  end
     def encode_uint32be(int); [int].pack(PACK_FORMAT_UINT32BE); end # used in BIP32
