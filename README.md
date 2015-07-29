@@ -62,7 +62,7 @@ $ rake
 ```
 $ git push origin --tags
 $ gem build btcruby.gemspec
-$ gem push btcruby-<version>.gem
+$ gem push btcruby-VER.gem
 ```
 
 ## Authors
