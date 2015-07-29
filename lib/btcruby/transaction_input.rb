@@ -78,7 +78,7 @@ module BTC
         @previous_hash    = previous_hash    || ZERO_HASH256
         @previous_hash    = BTC.hash_from_id(previous_id) if previous_id
         @previous_index   = previous_index   || INVALID_INDEX
-        @coinbase_data    = coinbase_data
+        @coinbase_data    = coinbase_data    || "".b
         @signature_script = signature_script || BTC::Script.new
         @sequence         = sequence         || MAX_SEQUENCE
       end

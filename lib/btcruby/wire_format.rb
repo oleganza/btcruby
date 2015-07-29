@@ -184,12 +184,44 @@ module BTC
 
       intbuf + stringbuf
     end
-    
-    
+
+
+    # Reads varint length prefix, then calls the block appropriate number of times to read the items.
+    # Returns an array of items.
+    def read_array(data: nil, stream: nil, offset: 0)
+      count, len = read_varint(data: data, stream: stream, offset: offset)
+      return [nil, len] if !count
+      (0...count).map do |i|
+        yield
+      end
+    end
+
+    def encode_array(array, &block)
+      write_array(array, &block)
+    end
+
+    def write_array(array, data: nil, stream: nil, &block)
+      raise ArgumentError, "Array must be present" if !array
+      raise ArgumentError, "Parsing block must be present" if !block
+      intbuf = write_varint(array.size, data: data, stream: stream)
+      array.inject(intbuf) do |buf, e|
+        string = block.call(e)
+        stringbuf = BTC::Data.ensure_binary_encoding(string)
+        data << stringbuf if data
+        stream.write(stringbuf) if stream
+        buf << stringbuf
+        buf
+      end
+    end
+
+
+
+
+
     # LEB128 encoding used in Open Assets protocol
-    
+
     # Decodes an unsigned integer encoded in LEB128.
-    # Returns `[value, length]` where `value` is an integer decoded from LEB128 and `length` 
+    # Returns `[value, length]` where `value` is an integer decoded from LEB128 and `length`
     # is a number of bytes read (includes length prefix and offset bytes).
     def read_uleb128(data: nil, stream: nil, offset: 0)
       if (data && stream) || (!data && !stream)
@@ -252,8 +284,8 @@ module BTC
       stream.write(buf) if stream
       buf
     end
-    
-    
+
+
 
     PACK_FORMAT_UINT8    = "C".freeze
     PACK_FORMAT_INT8     = "c".freeze
@@ -291,11 +323,11 @@ module BTC
     def read_int32le(data: nil, stream: nil, offset: 0)
       _read_fixint(name: :int32le,  length: 4, pack_format: PACK_FORMAT_INT32LE,  data: data, stream: stream, offset: offset)
     end
-    
+
     def read_uint32be(data: nil, stream: nil, offset: 0) # used in BIP32
       _read_fixint(name: :uint32be, length: 4, pack_format: PACK_FORMAT_UINT32BE, data: data, stream: stream, offset: offset)
     end
-    
+
     def read_int32be(data: nil, stream: nil, offset: 0)
       _read_fixint(name: :int32be,  length: 4, pack_format: PACK_FORMAT_INT32BE,  data: data, stream: stream, offset: offset)
     end

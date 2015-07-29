@@ -219,7 +219,7 @@ describe BTC::WireFormat do
     verify_fixint(:int32le, 0x7eadbeef, "efbead7e")
     verify_fixint(:int32le, 0x7fffffff, "ffffff7f")
     verify_fixint(:int32le, -1, "ffffffff")
-    
+
     verify_fixint(:int32be, 0, "00000000")
     verify_fixint(:int32be, 0x7f, "0000007f")
     verify_fixint(:int32be, 0x80, "00000080")
@@ -245,7 +245,7 @@ describe BTC::WireFormat do
     verify_fixint(:int64le, -1, "ffffffffffffffff")
 
   end
-  
+
   def verify_uleb128(int, hex)
 
     raw = hex.from_hex
@@ -280,8 +280,8 @@ describe BTC::WireFormat do
     BTC::WireFormat.read_uleb128(stream: io1, offset: 4).must_equal [int, 4 + raw.bytesize]
     BTC::WireFormat.read_uleb128(stream: io2, offset: 4).must_equal [int, 4 + raw.bytesize]
   end
-  
-  
+
+
   it "should encode/decode LEB128-encoded unsigned integers" do
     verify_uleb128(0, "00")
     verify_uleb128(1, "01")
@@ -294,6 +294,24 @@ describe BTC::WireFormat do
     verify_uleb128(0xffffff, "ffffff07")
     verify_uleb128(0x1000000, "80808008")
     verify_uleb128(2**64, "80808080808080808002")
+  end
+
+  it "should encode/decode varint-prefixed arrays" do
+
+    txs = [
+      Transaction.new,
+      Transaction.new(inputs:[TransactionInput.new]),
+      Transaction.new(outputs:[TransactionOutput.new])
+    ]
+    data = WireFormat.encode_array(txs) {|t|t.data}
+    data.bytes[0].must_equal txs.size
+    data.must_equal txs.inject("\x03".b){|d,t| d+t.data}
+
+    stream = StringIO.new(data)
+    txs2 = WireFormat.read_array(stream: stream){ Transaction.new(stream: stream) }
+    txs2[0].data.must_equal txs[0].data
+    txs2[1].data.must_equal txs[1].data
+    txs2[2].data.must_equal txs[2].data
   end
 
 end
