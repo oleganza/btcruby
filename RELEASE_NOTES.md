@@ -2,6 +2,13 @@
 BTCRuby Release Notes
 =====================
 
+1.1 (July 29, 2015)
+--------------------
+
+* Added full script interpreter as in Bitcoin Core 0.11.
+* Added array encoding/decoding support to `BTC::WireFormat`.
+
+
 1.0.9 (July 20, 2015)
 --------------------
 
