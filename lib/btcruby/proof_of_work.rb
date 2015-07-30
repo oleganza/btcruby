@@ -49,6 +49,7 @@ module BTC
     end
 
     # Converts 32-bit compact representation to a 256-bit integer.
+    # int32 -> bigint
     def target_from_bits(bits)
       exponent = ((bits >> 24) & 0xff)
       mantissa = bits & 0x7fffff
@@ -59,31 +60,36 @@ module BTC
     # Computes bits from difficulty.
     # Could be inaccurate since difficulty is a limited-precision floating-point number.
     # Default max_target is for Bitcoin mainnet.
+    # float -> int32
     def bits_from_difficulty(difficulty, max_target: MAX_TARGET_MAINNET)
       bits_from_target(target_from_difficulty(difficulty, max_target: max_target))
     end
 
-    # Computes difficulty from bits. 
+    # Computes difficulty from bits.
     # Default max_target is for Bitcoin mainnet.
+    # int32 -> float
     def difficulty_from_bits(bits, max_target: MAX_TARGET_MAINNET)
       difficulty_from_target(target_from_bits(bits), max_target: max_target)
     end
 
-    # Computes target from difficulty. 
+    # Computes target from difficulty.
     # Could be inaccurate since difficulty is a limited-precision floating-point number.
     # Default max_target is for Bitcoin mainnet.
+    # float -> bigint
     def target_from_difficulty(difficulty, max_target: MAX_TARGET_MAINNET)
       (max_target / difficulty).round.to_i
     end
-    
-    # Compute relative difficulty from a given target. 
+
+    # Compute relative difficulty from a given target.
     # E.g. returns 2.5 if target is 2.5 times harder to reach than the max_target.
     # Default max_target is for Bitcoin mainnet.
+    # bigint -> float
     def difficulty_from_target(target, max_target: MAX_TARGET_MAINNET)
       (max_target / target.to_f)
     end
 
     # Converts target integer to a binary 32-byte hash.
+    # bigint -> hash256
     def hash_from_target(target)
       bytes = []
       while target > 0
@@ -93,7 +99,8 @@ module BTC
       BTC::Data.data_from_bytes(bytes).ljust(32, "\x00".b)
     end
 
-    # Converts 32-byte hash to target integer (hash is treated as little-endian integer)
+    # Converts 32-byte hash to target big integer (hash is treated as little-endian integer)
+    # hash256 -> bigint
     def target_from_hash(hash)
       target = 0
       i = 0
@@ -105,6 +112,23 @@ module BTC
     end
 
     # TODO: add retargeting calculation routines
+
+    # Compute amount of work expressed as a target
+    # Based on `arith_uint256 GetBlockProof(const CBlockIndex& block)` from Bitcoin Core
+    # bigint -> bigint
+    def work_from_target(target)
+      # We need to compute 2**256 / (target+1), but we can't represent 2**256
+      # as it's too large for a arith_uint256. However, as 2**256 is at least as large
+      # as target+1, it is equal to ((2**256 - target - 1) / (target+1)) + 1,
+      # or ~target / (target+1) + 1.
+      # In Ruby bigint is signed, so we can't use '~', but we can use 2**256
+      return ((2**256 - target - 1) / (target + 1)) + 1
+    end
+
+    # hash256 -> bigint
+    def work_from_hash(hash)
+      work_from_target(target_from_hash(hash))
+    end
 
   end # ProofOfWork
 end # BTC

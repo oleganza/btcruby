@@ -45,9 +45,22 @@ describe BTC::ProofOfWork do
     POW.difficulty_from_target(0x0000000007fff800000000000000000000000000000000000000000000000000,
                                                 max_target: POW::MAX_TARGET_TESTNET).to_i.must_equal 256
   end
-  
+
   it "should convert difficulty to target or bits" do
     POW.target_from_difficulty(1.0).must_equal 0x00000000ffff0000000000000000000000000000000000000000000000000000
     POW.bits_from_difficulty(39603666252.41841).must_equal 0x181bc330
   end
+
+  it "should convert hash to work" do
+    POW.work_from_target(0).must_equal 2**256
+    POW.work_from_target(1).must_equal 2**255
+    POW.work_from_target(2**255).must_equal 1
+    POW.work_from_target(2**256).must_equal 0
+
+    POW.work_from_hash("\x00".b*32).must_equal 2**256
+    POW.work_from_hash("\x01".b + "\x00".b*31).must_equal 2**255
+    POW.work_from_hash("8000000000000000000000000000000000000000000000000000000000000000".from_hex.reverse).must_equal 1
+    POW.work_from_hash("\xff".b*32).must_equal 1
+  end
+
 end
