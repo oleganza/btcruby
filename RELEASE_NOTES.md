@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.1.1 (July 30, 2015)
+---------------------
+
+* Added work computation from bigint and 256-bit hash.
+
+
 1.1 (July 29, 2015)
 --------------------
 
