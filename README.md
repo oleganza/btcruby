@@ -28,6 +28,7 @@ Please see [BTCRuby Reference](documentation/index.md) for API documentation and
   and [BIP62](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki).
 * Automatic normalization of existing ECDSA signatures (see `BTC::Key#normalized_signature`).
 * Rich script analysis and compositing support (see `BTC::Script`).
+* Full script interpreter with [P2SH](https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki) and [CLTV](https://github.com/bitcoin/bips/blob/master/bip-0065.mediawiki) features.
 * Powerful diagnostics API covering the entire library (see `BTC::Diagnostics`).
 * Canonicality checks for transactions, public keys and script elements.
 * Fee computation and signature script simulation for building transactions without signing them.
