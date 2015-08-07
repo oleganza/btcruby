@@ -5,7 +5,7 @@ TODO:
 - add BIP70 payment request support
 - add convenience methods to handle BIP44 accounts in BTC::Keychain (like in CoreBitcoin)
 - add Bitcoin URI support to encode and parse `bitcoin:` URIs.
-
+- migrate from OpenSSL to libsecp256k1, see https://github.com/GemHQ/secp256k1-rb
 + replace factory methods like `C.with_data` or `C.with_key` with initializer since we now throw exceptions instead of returning nil on input errors.
 + block and block header classes
 + redesigned transaction builder to return a result object like in CoreBitcoin
