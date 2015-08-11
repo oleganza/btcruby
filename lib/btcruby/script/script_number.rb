@@ -18,6 +18,8 @@ module BTC
       if integer
         assert(integer >= INT64_MIN && integer <= INT64_MAX, "Integer must be within int64 range")
         @integer = integer
+      elsif boolean == false || boolean == true
+        @integer = boolean ? 1 : 0
       elsif data || hex
         data ||= BTC.from_hex(hex)
         if data.bytesize > max_size
@@ -42,8 +44,6 @@ module BTC
           end
         end
         @integer = self.class.decode_integer(data)
-      elsif boolean == false || boolean == true
-        @integer = boolean ? 1 : 0
       else
         raise ArgumentError
       end

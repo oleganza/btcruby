@@ -421,7 +421,7 @@ module BTC
 
     # Appends an opcode (Integer), pushdata (String) or Script and returns self.
     # If Array is passed, this method is recursively called for each element in the array.
-    def <<(object)
+    def append(object)
       if object.is_a?(BTC::Script)
         append_script(object)
       elsif object.is_a?(Integer)
@@ -438,6 +438,10 @@ module BTC
         raise ArgumentError, "Operand must be an integer, a string a BTC::Script instance or an array of any of those."
       end
       return self
+    end
+    
+    def <<(object)
+      append(object)
     end
 
     # Returns a new instance with concatenation of two scripts.
