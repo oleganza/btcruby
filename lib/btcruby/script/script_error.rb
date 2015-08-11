@@ -134,6 +134,6 @@ module BTC
 end
 
 if $0 == __FILE__
-  puts BTC::ScriptError.new(BTC::ScriptError::SCRIPT_ERR_SIG_HIGH_S).inspect
+  puts BTC::ScriptError.new(BTC::SCRIPT_ERR_SIG_HIGH_S).inspect
 end
 
