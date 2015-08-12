@@ -50,6 +50,7 @@ The goal is to provide a complete Bitcoin toolkit in Ruby.
 
 ```
 $ bundle install
+$ brew install ./vendor/homebrew/secp256k1.rb
 $ rake
 ```
 

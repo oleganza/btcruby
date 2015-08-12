@@ -8,13 +8,13 @@ module BTC
     include ::FFI::Library
     extend self
 
-    # Install on OSX: brew install https://gist.github.com/shazow/c71c652409015479a7e6/raw/secp256k1.rb
     ffi_lib 'secp256k1'
 
     SECP256K1_CONTEXT_VERIFY = (1 << 0)
     SECP256K1_CONTEXT_SIGN   = (1 << 1)
 
-    # WARNING: this struct is considered opaque, but libsecp256k1 does not provide a function to allocate an empty signature yet.
+    # Note: this struct is opaque, but public. Its size will eventually be guaranteed.
+    # See https://github.com/bitcoin/secp256k1/issues/288
     # typedef struct {
     #   unsigned char data[65];
     # } secp256k1_ecdsa_signature_t;
