@@ -14,6 +14,7 @@ module BTC
     include ScriptFlags
 
     attr_accessor :flags
+    attr_accessor :plugins
     attr_accessor :signature_checker
     attr_accessor :stack
     attr_accessor :altstack
@@ -23,6 +24,7 @@ module BTC
     # (required if the scripts use signature-checking opcodes).
     # Checker can be transaction checker or block checker
     def initialize(flags:             SCRIPT_VERIFY_NONE,
+                   plugins:           nil,
                    signature_checker: nil,
                    raise_on_failure:  false,
                    max_pushdata_size: MAX_SCRIPT_ELEMENT_SIZE,
@@ -31,6 +33,7 @@ module BTC
                    integer_max_size:  4,
                    locktime_max_size: 5)
       @flags             = flags
+      @plugins           = plugins || []
       @signature_checker = signature_checker
       @raise_on_failure  = raise_on_failure
       @max_pushdata_size = max_pushdata_size
@@ -49,6 +52,14 @@ module BTC
 
       if flag?(SCRIPT_VERIFY_SIGPUSHONLY) && !signature_script.data_only?
         return set_error(SCRIPT_ERR_SIG_PUSHONLY)
+      end
+
+      if plugin = plugin_to_handle_scripts(signature_script: signature_script, output_script: output_script)
+        return plugin.handle_scripts(
+          interpreter: self,
+          signature_script: signature_script,
+          output_script: output_script
+        ) && verify_clean_stack_if_needed
       end
 
       if !run_script(signature_script)
@@ -110,21 +121,7 @@ module BTC
         end
       end
 
-      # The CLEANSTACK check is only performed after potential P2SH evaluation,
-      # as the non-P2SH evaluation of a P2SH script will obviously not result in
-      # a clean stack (the P2SH inputs remain).
-      if flag?(SCRIPT_VERIFY_CLEANSTACK)
-        # Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK
-        # would be possible, which is not a softfork (and P2SH should be one).
-        if !flag?(SCRIPT_VERIFY_P2SH)
-          raise ArgumentError, "CLEANSTACK without P2SH is disallowed"
-        end
-        if @stack.size != 1
-          return set_error(SCRIPT_ERR_CLEANSTACK, "Stack must be clean (should contain one item 'true')")
-        end
-      end
-      
-      return true
+      return verify_clean_stack_if_needed
     end
 
 
@@ -847,7 +844,13 @@ module BTC
 
     # If multiple flags are provided, returns true if any of them are present
     def flag?(flags)
-      (@flags & flags) != 0
+      (all_flags & flags) != 0
+    end
+
+    def all_flags
+      @plugins.inject(@flags) do |f, p|
+        f | p.extra_flags
+      end
     end
 
     def cast_to_number(data,
@@ -876,6 +879,33 @@ module BTC
       false
     end
 
+    private
+
+    def plugin_to_handle_scripts(signature_script: nil, output_script: nil)
+      @plugins.each do |plugin|
+        if plugin.should_handle_scripts(interpreter: self, signature_script: signature_script, output_script: output_script)
+          return plugin
+        end
+      end
+      nil
+    end
+
+    def verify_clean_stack_if_needed
+      # The CLEANSTACK check is only performed after potential P2SH evaluation,
+      # as the non-P2SH evaluation of a P2SH script will obviously not result in
+      # a clean stack (the P2SH inputs remain).
+      if flag?(SCRIPT_VERIFY_CLEANSTACK)
+        # Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK
+        # would be possible, which is not a softfork (and P2SH should be one).
+        if !flag?(SCRIPT_VERIFY_P2SH)
+          raise ArgumentError, "CLEANSTACK without P2SH is disallowed"
+        end
+        if @stack.size != 1
+          return set_error(SCRIPT_ERR_CLEANSTACK, "Stack must be clean (should contain one item 'true')")
+        end
+      end
+      return true
+    end
 
   end
 end
