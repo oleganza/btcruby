@@ -269,7 +269,7 @@ module BTC
     # Nonce k is equal to HMAC-SHA256(data: hash, key: privkey)
     def ecdsa_signature(hash, privkey, normalized: true)
       raise ArgumentError, "Hash is missing" if !hash
-      raise ArgumentError, "Cannot make a ECDSA signature without the private key" if !privkey
+      raise ArgumentError, "Private key is missing" if !privkey
 
       # ECDSA signature is a pair of numbers: (Kx, s)
       # Where Kx = x coordinate of k*G mod n (n is the order of secp256k1).
