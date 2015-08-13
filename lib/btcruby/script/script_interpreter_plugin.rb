@@ -8,6 +8,7 @@ module BTC
   # - callback after output script execution
   # - hook for handling the opcodes
   module ScriptInterpreterPlugin
+    include ScriptFlags
 
     # Returns additional flags to be available to #flag? checks during script execution.
     # This way one plugin can affect evaluation of another.
@@ -29,7 +30,7 @@ module BTC
 
     # Every plugin gets this callback. If plugin return `false`, execution is stopped and interpreter returns `false`.
     # Default value is `true`.
-    def did_execute_signature_script(interpreter: nil, stack: nil, signature_script: nil)
+    def did_execute_signature_script(interpreter: nil, signature_script: nil)
       true
     end
 
@@ -47,7 +48,7 @@ module BTC
 
     # Every plugin gets this callback. If plugin return `false`, execution is stopped and interpreter returns `false`.
     # Default value is `true`.
-    def did_execute_output_script(interpreter: nil, stack: nil, output_script: nil)
+    def did_execute_output_script(interpreter: nil, output_script: nil)
       true
     end
 

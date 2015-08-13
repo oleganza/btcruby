@@ -54,7 +54,7 @@ module BTC
         return set_error(SCRIPT_ERR_SIG_PUSHONLY)
       end
 
-      if plugin = plugin_to_handle_scripts(signature_script: signature_script, output_script: output_script)
+      if plugin = plugin_to_handle_scripts(signature_script, output_script)
         return plugin.handle_scripts(
           interpreter: self,
           signature_script: signature_script,
@@ -67,6 +67,12 @@ module BTC
         return false
       end
 
+      if !did_execute_signature_script(signature_script)
+        # error is set already
+        return false
+      end
+
+      # FIXME: remove this
       stack_copy = if flag?(SCRIPT_VERIFY_P2SH)
         @stack.dup
       end
@@ -82,6 +88,11 @@ module BTC
 
       if cast_to_bool(@stack.last) == false
         return set_error(SCRIPT_ERR_EVAL_FALSE)
+      end
+
+      if !did_execute_output_script(output_script)
+        # error is set already
+        return false
       end
 
       # Additional validation for pay-to-script-hash (P2SH) transactions:
@@ -881,13 +892,38 @@ module BTC
 
     private
 
-    def plugin_to_handle_scripts(signature_script: nil, output_script: nil)
+    def plugin_to_handle_scripts(signature_script, output_script)
       @plugins.each do |plugin|
         if plugin.should_handle_scripts(interpreter: self, signature_script: signature_script, output_script: output_script)
           return plugin
         end
       end
       nil
+    end
+
+    def plugin_to_handle_output_script(output_script)
+      @plugins.each do |plugin|
+        if plugin.should_handle_output_script(interpreter: self, signature_script: signature_script, output_script: output_script)
+          return plugin
+        end
+      end
+      nil
+    end
+
+    def did_execute_signature_script(signature_script)
+      @plugins.each do |plugin|
+        if !plugin.did_execute_signature_script(interpreter: self, signature_script: signature_script)
+          return false
+        end
+      end
+    end
+
+    def did_execute_output_script(output_script)
+      @plugins.each do |plugin|
+        if !plugin.did_execute_output_script(interpreter: self, output_script: output_script)
+          return false
+        end
+      end
     end
 
     def verify_clean_stack_if_needed

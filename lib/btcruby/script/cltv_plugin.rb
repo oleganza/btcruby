@@ -1,5 +1,5 @@
 module BTC
-  # Performs CHECKLOCKTIMEVERIFY evaluation
+  # Performs CHECKLOCKTIMEVERIFY (BIP65) evaluation
   class CLTVPlugin
     include ScriptInterpreterPlugin
 
