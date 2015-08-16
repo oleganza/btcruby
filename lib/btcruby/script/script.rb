@@ -424,6 +424,8 @@ module BTC
     def append(object)
       if object.is_a?(BTC::Script)
         append_script(object)
+      elsif object.is_a?(BTC::ScriptNumber)
+        append_pushdata(object.data)
       elsif object.is_a?(Integer)
         append_opcode(object)
       elsif object.is_a?(String)

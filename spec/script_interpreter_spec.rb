@@ -72,14 +72,41 @@ describe BTC::ScriptInterpreter do
         flags | f
       end
     end
+    
+    def buildCreditingTransaction(scriptPubKey)
+      txCredit = Transaction.new;
+      txCredit.version = 1;
+      txCredit.lock_time = 0;
+      txCredit.add_input(TransactionInput.new(
+        previous_hash: nil,
+        signature_script: Script.new << ScriptNumber.new(integer:0) << ScriptNumber.new(integer:0)
+      ))
+      txCredit.add_output(TransactionOutput.new(
+        script: scriptPubKey,
+        value: 0
+      ))
+      txCredit
+    end
 
-    def check_signature(script_signature: nil, public_key:nil, script:nil)
-      @dummy_checksig && script_signature.bytesize > 60
+    def buildSpendingTransaction(scriptSig, txCredit)
+      txSpend = Transaction.new
+      txSpend.version = 1;
+      txSpend.lock_time = 0;
+      txSpend.add_input(TransactionInput.new(
+        previous_hash: txCredit.transaction_hash,
+        previous_index: 0,
+        signature_script: scriptSig
+      ))
+      txSpend.add_output(TransactionOutput.new(
+        script: Script.new,
+        value: 0
+      ))
+      return txSpend;
     end
 
     def verify_script(sig_script, output_script, flags, expected_result, record)
-      @dummy_checksig = expected_result
-      checker = self
+      tx = buildSpendingTransaction(sig_script, buildCreditingTransaction(output_script));
+      checker = TransactionSignatureChecker.new(transaction: tx, input_index: 0)
       interpreter = BTC::ScriptInterpreter.new(
         flags: flags,
         signature_checker: checker,
@@ -124,7 +151,7 @@ describe BTC::ScriptInterpreter do
   end
 
   ScriptTestHelper.verify_scripts(ValidScripts, true) do |helper, record, sig_script, output_script, flags, expected_result|
-    it "#{record.inspect} should be valid" do
+    it "should validate scripts #{record.inspect}" do
       sig_script.wont_be_nil
       output_script.wont_be_nil
       helper.verify_script(sig_script, output_script, flags, expected_result, record)
@@ -132,7 +159,7 @@ describe BTC::ScriptInterpreter do
   end
 
   ScriptTestHelper.verify_scripts(InvalidScripts, false) do |helper, record, sig_script, output_script, flags, expected_result|
-    it "#{record.inspect} should be invalid" do
+    it "should fail scripts #{record.inspect}" do
       helper.verify_script(sig_script, output_script, flags, expected_result, record)
     end
   end
