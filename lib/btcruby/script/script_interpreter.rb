@@ -13,11 +13,13 @@ module BTC
   class ScriptInterpreter
     include ScriptFlags
 
+    # Flags specified for this interpreter, not including flags added by plugins.
     attr_accessor :flags
+    
     attr_accessor :plugins
     attr_accessor :signature_checker
     attr_accessor :stack
-    attr_accessor :altstack
+    attr_reader   :altstack
     attr_accessor :error # ScriptError instance
 
     # Instantiates interpreter with validation flags and an optional checker
@@ -41,14 +43,14 @@ module BTC
       @max_stack_size    = max_stack_size
       @integer_max_size  = integer_max_size
       @locktime_max_size = locktime_max_size
-
-      @stack = []
-      @altstack = []
     end
 
     # Returns true if succeeded or false in case of failure.
     # If fails, sets the error attribute.
     def verify_script(signature_script: nil, output_script: nil)
+
+      @stack = []
+      @altstack = []
 
       if flag?(SCRIPT_VERIFY_SIGPUSHONLY) && !signature_script.data_only?
         return set_error(SCRIPT_ERR_SIG_PUSHONLY)
@@ -148,6 +150,9 @@ module BTC
     # Used internally in `verify_script` and also in unit tests.
     def run_script(script)
 
+      # Altstack is not shared between individual runs, but we still store it in ivar to make available to the plugins.
+      @altstack = []
+
       number_zero  = ScriptNumber.new(integer: 0)
       number_one   = ScriptNumber.new(integer: 1)
       zero_value = "".b
@@ -195,7 +200,7 @@ module BTC
 
         if should_execute && 0 <= opcode && opcode <= OP_PUSHDATA4
           # Pushdata (including OP_0).
-          if require_minimal && !chunk.canonical?
+          if require_minimal && !check_minimal_push(chunk.pushdata, opcode)
             return set_error(SCRIPT_ERR_MINIMALDATA)
           end
           stack_push(chunk.pushdata)
@@ -217,45 +222,47 @@ module BTC
             # nothing
 
           when OP_CHECKLOCKTIMEVERIFY
-            if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
-              # not enabled; treat as a NOP2
-              if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
-                return set_error(SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS)
+            begin
+              if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
+                # not enabled; treat as a NOP2
+                if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
+                  return set_error(SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS)
+                end
+                break # breaks out of begin ... end while false
               end
-              break
-            end
 
-            if @stack.size < 1
-              return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
-            end
+              if @stack.size < 1
+                return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
+              end
 
-            # Note that elsewhere numeric opcodes are limited to
-            # operands in the range -2**31+1 to 2**31-1, however it is
-            # legal for opcodes to produce results exceeding that
-            # range. This limitation is implemented by CScriptNum's
-            # default 4-byte limit.
-            #
-            # If we kept to that limit we'd have a year 2038 problem,
-            # even though the nLockTime field in transactions
-            # themselves is uint32 which only becomes meaningless
-            # after the year 2106.
-            #
-            # Thus as a special case we tell CScriptNum to accept up
-            # to 5-byte bignums, which are good until 2**39-1, well
-            # beyond the 2**32-1 limit of the nLockTime field itself.
-            locktime = cast_to_number(@stack.last, max_size: @locktime_max_size)
+              # Note that elsewhere numeric opcodes are limited to
+              # operands in the range -2**31+1 to 2**31-1, however it is
+              # legal for opcodes to produce results exceeding that
+              # range. This limitation is implemented by CScriptNum's
+              # default 4-byte limit.
+              #
+              # If we kept to that limit we'd have a year 2038 problem,
+              # even though the nLockTime field in transactions
+              # themselves is uint32 which only becomes meaningless
+              # after the year 2106.
+              #
+              # Thus as a special case we tell CScriptNum to accept up
+              # to 5-byte bignums, which are good until 2**39-1, well
+              # beyond the 2**32-1 limit of the nLockTime field itself.
+              locktime = cast_to_number(@stack.last, max_size: @locktime_max_size)
 
-            # In the rare event that the argument may be < 0 due to
-            # some arithmetic being done first, you can always use
-            # 0 MAX CHECKLOCKTIMEVERIFY.
-            if locktime < 0
-              return set_error(SCRIPT_ERR_NEGATIVE_LOCKTIME)
-            end
+              # In the rare event that the argument may be < 0 due to
+              # some arithmetic being done first, you can always use
+              # 0 MAX CHECKLOCKTIMEVERIFY.
+              if locktime < 0
+                return set_error(SCRIPT_ERR_NEGATIVE_LOCKTIME)
+              end
 
-            # Actually compare the specified lock time with the transaction.
-            if !signature_checker.check_lock_time(locktime)
-              return set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
-            end
+              # Actually compare the specified lock time with the transaction.
+              if !signature_checker.check_lock_time(locktime)
+                return set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
+              end
+            end while false
 
           when OP_NOP1..OP_NOP10
             if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -575,9 +582,9 @@ module BTC
             when OP_GREATERTHANOREQUAL
               bn = ScriptNumber.new(boolean: (bn1 >= bn2))
             when OP_MIN
-              bn = ScriptNumber.new(boolean: (bn1 < bn2 ? bn1 : bn2))
+              bn = (bn1 < bn2 ? bn1 : bn2)
             when OP_MAX
-              bn = ScriptNumber.new(boolean: (bn1 > bn2 ? bn1 : bn2))
+              bn = (bn1 > bn2 ? bn1 : bn2)
             else
               raise "Invalid opcode"
             end
@@ -800,6 +807,8 @@ module BTC
       end
 
       return true
+    rescue ScriptNumberError => e
+      return set_error(SCRIPT_ERR_UNKNOWN_ERROR, e.message)
     end # run_script
 
 
@@ -812,6 +821,30 @@ module BTC
     def stack_push(x)
       @stack.push(x)
       #puts "PUSHED TO STACK:   #{@stack.map{|s|s.to_hex}.join(' ')}"
+    end
+
+    # aka CheckMinimalPush(const valtype& data, opcodetype opcode)
+    def check_minimal_push(data, opcode)
+      if data.bytesize == 0
+        # Could have used OP_0.
+        return opcode == OP_0
+      elsif data.bytesize == 1 && data.bytes[0] >= 1 && data.bytes[0] <= 16
+        # Could have used OP_1 .. OP_16.
+        return opcode == OP_1 + (data.bytes[0] - 1)
+      elsif data.bytesize == 1 && data.bytes[0] == 0x81
+        # Could have used OP_1NEGATE.
+        return opcode == OP_1NEGATE
+      elsif data.bytesize <= 75
+        # Could have used a direct push (opcode indicating number of bytes pushed + those bytes).
+        return opcode == data.bytesize
+      elsif data.bytesize <= 255
+        # Could have used OP_PUSHDATA.
+        return opcode == OP_PUSHDATA1
+      elsif (data.bytesize <= 65535)
+        # Could have used OP_PUSHDATA2.
+        return opcode == OP_PUSHDATA2
+      end
+      return true
     end
 
     def check_signature_encoding(sig)
