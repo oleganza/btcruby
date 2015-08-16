@@ -101,7 +101,7 @@ describe BTC::ScriptInterpreter do
         script: Script.new,
         value: 0
       ))
-      return txSpend;
+      txSpend
     end
 
     def verify_script(sig_script, output_script, flags, expected_result, record)
