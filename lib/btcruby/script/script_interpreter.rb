@@ -150,6 +150,10 @@ module BTC
     # Used internally in `verify_script` and also in unit tests.
     def run_script(script)
 
+      if script.data.bytesize > MAX_SCRIPT_SIZE
+        return set_error(SCRIPT_ERR_SCRIPT_SIZE)
+      end
+
       # Altstack is not shared between individual runs, but we still store it in ivar to make available to the plugins.
       @altstack = []
 
