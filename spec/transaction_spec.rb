@@ -36,36 +36,50 @@ describe BTC::Transaction do
       #
       # verifyFlags is a comma separated list of script verification flags to apply, or "NONE"
       def parse_tests(records, expected_result)
-        records = records.find_all{|r| r[0].is_a?(Array) }
+        comment = nil
         records.each do |test|
-          if test.size != 3 || !test[1].is_a?(String) || !test[2].is_a?(String)
-            raise "Bad test: #{test.inspect} (#{test.size} #{test[1].class} #{test[2].class})"
-          end
-          mapprevOutScriptPubKeys = {} # Outpoint => Script
-          inputs = test[0]
-          inputs.each do |input|
-            raise "Bad test: input is not an array: #{test.inspect}" if !input.is_a?(Array)
-            raise "Bad test: input is an array of 3 items: #{test.inspect}" if input.size != 3
-            previd, previndex, scriptstring = input
-            
-            outpoint = Outpoint.new(transaction_id: previd, index: previndex)
-            
-            mapprevOutScriptPubKeys[outpoint] = parse_script(scriptstring)
-          end
-          
-          tx = Transaction.new(hex: test[1])
-          flags = parse_flags(test[2])
-          
-          tx.inputs.each do |txin|
-            output_script = mapprevOutScriptPubKeys[txin.outpoint]
-            raise "Bad test: output script not found: #{test.inspect}" if !output_script
-            sig_script = txin.signature_script
-            if !sig_script
-              sig_script = Script.new(data: txin.coinbase_data)
+          if test[0].is_a?(Array)
+            if test.size != 3 || !test[1].is_a?(String) || !test[2].is_a?(String)
+              raise "Bad test: #{test.inspect} (#{test.size} #{test[1].class} #{test[2].class})"
             end
-            yield(self, tx, txin, sig_script, output_script, flags, expected_result, test)
+            mapprevOutScriptPubKeys = {} # Outpoint => Script
+            inputs = test[0]
+            inputs.each do |input|
+              raise "Bad test: input is not an array: #{test.inspect}" if !input.is_a?(Array)
+              raise "Bad test: input is an array of 3 items: #{test.inspect}" if input.size != 3
+              previd, previndex, scriptstring = input
+            
+              outpoint = Outpoint.new(transaction_id: previd, index: previndex)
+            
+              mapprevOutScriptPubKeys[outpoint] = parse_script(scriptstring)
+            end
+          
+            tx = Transaction.new(hex: test[1])
+            flags = parse_flags(test[2])
+          
+            tx.inputs.each do |txin|
+              output_script = mapprevOutScriptPubKeys[txin.outpoint]
+              raise "Bad test: output script not found: #{test.inspect}" if !output_script
+              sig_script = txin.signature_script
+              if !sig_script
+                sig_script = Script.new(data: txin.coinbase_data)
+              end
+              if debug_filter(test)
+                yield(self, tx, txin, sig_script, output_script, flags, expected_result, test, comment)
+              end
+            end
+            comment = nil
+          else
+            comment ||= ""
+            comment += test[0].gsub(/\.$/,"") + ". "
+            comment.gsub!(/\. $/, "")
           end
         end
+      end
+      
+      def debug_filter(test)
+        #return test.inspect[%{[[["60a20bd93aa49ab4b28d514ec10b06e1829ce6818ec06cd3aabd013ebcdc4bb1", 0, "1 0x41 0x04cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4 0x41 0x0461cbdcc5409fb4b4d42b51d33381354d80e550078cb532a34bfa2fcfdeb7d76519aecc62770f5b0e4ef8551946d8a540911abe3e7854a26f39f58b25c15342af 2 OP_CHECKMULTISIG"]], "0100000001b14bdcbc3e01bdaad36cc08e81e69c82e1060bc14e518db2b49aa43ad90ba26000000000490047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01ffffffff0140420f00000000001976a914660d4ef3a743e3e696ad990364e555c271ad504b88ac00000000", "P2SH"]}]
+        true
       end
       
       def verify_script(tx, txin, sig_script, output_script, flags, expected_result, record)
@@ -77,28 +91,30 @@ describe BTC::Transaction do
           flags: flags,
           plugins: plugins,
           signature_checker: checker,
-          raise_on_failure: false,
+          raise_on_failure: true,
         )
-        result = interpreter.verify_script(signature_script: sig_script, output_script: output_script)
-        if result != expected_result
-          # puts "Failed scripts: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags}, expected to #{expected_result ? 'succeed' : 'fail'}".gsub(/OP_/, "")
-          # puts "Error: #{interpreter.error.inspect}"
-          #debug("Failed #{expected_result ? 'valid' : 'invalid'} script: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags} -- #{record.inspect}")
-        end
-        result.must_equal expected_result
+        #Diagnostics.current.trace do
+          result = interpreter.verify_script(signature_script: sig_script, output_script: output_script)
+          if result != expected_result
+            # puts "Failed scripts: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags}, expected to #{expected_result ? 'succeed' : 'fail'}".gsub(/OP_/, "")
+            # puts "Error: #{interpreter.error.inspect}"
+            #debug("Failed #{expected_result ? 'valid' : 'invalid'} script: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags} -- #{record.inspect}")
+          end
+          result.must_equal expected_result
+        #end
       end
       
       
     end
     
-    TxTestHelper.parse_tests(ValidTxs, true) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record|
-      it "should validate transaction #{record.inspect}" do
+    TxTestHelper.parse_tests(ValidTxs, true) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record, comment|
+      it "should validate transaction: #{comment || record.inspect}" do
         TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
       end
     end
     
-    # TxTestHelper.parse_tests(InvalidTxs, false) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record|
-    #   it "should fail transaction #{record.inspect}" do
+    # TxTestHelper.parse_tests(InvalidTxs, false) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record, comment|
+    #   it "should fail transaction #{comment || record.inspect}" do
     #     TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
     #   end
     # end

@@ -37,7 +37,7 @@ Please see [BTCRuby Reference](documentation/index.md) for API documentation and
 ## Philosophy
 
 * We use clear, expressive names for all methods and classes.
-* Self-contained implementation. Only external dependency is `ffi` gem that helps linking directly with OpenSSL.
+* Self-contained implementation. Only external dependency is `ffi` gem that helps linking directly with OpenSSL and libsecp256k1.
 * For efficiency and consistency we use binary strings throughout the library (not the hex strings as in other libraries).
 * We do not pollute standard classes with our methods. To use utility extensions like `String#to_hex` you should explicitly `require 'btcruby/extensions'`.
 * We use OpenSSL `BIGNUM` implementation where compatibility is critical (instead of the built-in Ruby Bignum).

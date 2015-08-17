@@ -55,6 +55,7 @@ def parse_script(json_script, expected_result = true)
     else
       # opcode, e.g. OP_ADD or ADD:
       opcode = Opcode.opcode_for_name("OP_" + x)
+      opcode = Opcode.opcode_for_name(x) if opcode == OP_INVALIDOPCODE
       parsed_script << opcode
     end
   end

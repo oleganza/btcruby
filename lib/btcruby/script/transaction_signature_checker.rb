@@ -23,6 +23,7 @@ module BTC
       result = key.verify_ecdsa_signature(ecdsa_sig, hash)
       return result
     rescue BTC::FormatError => e # public key is invalid
+      Diagnostics.current.add_message(e.message)
       return false
     end
 

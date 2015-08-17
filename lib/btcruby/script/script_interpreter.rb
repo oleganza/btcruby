@@ -791,7 +791,7 @@ module BTC
             end
 
           else # unknown opcode
-            return set_error(SCRIPT_ERR_BAD_OPCODE)
+            return set_error(SCRIPT_ERR_BAD_OPCODE, "Unknown opcode 0x#{opcode.to_s(16)}")
 
           end # case opcode
         end # within IF scope
