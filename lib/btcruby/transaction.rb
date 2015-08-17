@@ -381,7 +381,6 @@ module BTC
       # Single mode assumes we sign an output at the same index as an input.
       # Outputs before the one we need are blanked out. All outputs after are simply removed.
       elsif (hash_type & BTC::SIGHASH_OUTPUT_MASK) == BTC::SIGHASH_SINGLE
-
         # Only lock-in the txout payee at same index as txin.
         output_index = input_index;
 
@@ -411,7 +410,7 @@ module BTC
       # Blank out other inputs completely. This is not recommended for open transactions.
       if (hash_type & BTC::SIGHASH_ANYONECANPAY) != 0
         input = tx.inputs[input_index]
-        tx.remove_all_outputs
+        tx.remove_all_inputs
         tx.add_input(input)
       end
 

@@ -135,6 +135,11 @@ describe BTC::ScriptInterpreter do
       end
       result.must_equal expected_result
     end
+    
+    def debug_filter(record)
+      #return record.inspect['"P2PK anyonecanpay"']
+      true
+    end
 
     def verify_scripts(script_data, expected_result)
       records = script_data.find_all do |record|
@@ -150,12 +155,16 @@ describe BTC::ScriptInterpreter do
 
         if expected_result == false
           if sig_script != nil && output_script != nil
+            if debug_filter(record)
+              yield(self, record, sig_script, output_script, flags, expected_result)
+              #verify_script(sig_script, output_script, flags, expected_result)
+            end
+          end
+        else
+          if debug_filter(record)
             yield(self, record, sig_script, output_script, flags, expected_result)
             #verify_script(sig_script, output_script, flags, expected_result)
           end
-        else
-          yield(self, record, sig_script, output_script, flags, expected_result)
-          #verify_script(sig_script, output_script, flags, expected_result)
         end
       end
     end
