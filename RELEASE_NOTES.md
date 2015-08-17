@@ -2,6 +2,14 @@
 BTCRuby Release Notes
 =====================
 
+1.1.2 (August 17, 2015)
+---------------------
+
+* Added scripts test suite from Bitcoin Core
+* Added transactions test suite from Bitcoin Core
+* Renamed `TransactionOutpoint` to `Outpoint` (previous name kept for backwards compatibility)
+
+
 1.1.1 (July 30, 2015)
 ---------------------
 

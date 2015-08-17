@@ -1,6 +1,6 @@
 module BTC
   # Represents a reference to a previous transaction.
-  class TransactionOutpoint
+  class Outpoint
     attr_accessor :transaction_hash
     attr_accessor :transaction_id
     attr_accessor :index
@@ -37,4 +37,7 @@ module BTC
       outpoint_id
     end
   end
+  
+  # For backwards compatibility keep the longer name.
+  TransactionOutpoint = Outpoint
 end

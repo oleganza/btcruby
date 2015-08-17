@@ -200,7 +200,7 @@ module BTC
     def outpoint
       return @outpoint if @outpoint
       if transaction_hash && index
-        @outpoint = TransactionOutpoint.new(transaction_hash: transaction_hash, index: index)
+        @outpoint = Outpoint.new(transaction_hash: transaction_hash, index: index)
       end
       @outpoint
     end
