@@ -74,7 +74,7 @@ module BTC
     def initialize(data: nil,
                    stream: nil,
                    dictionary: nil,
-                   value: 0,
+                   value: -1,
                    script: BTC::Script.new,
 
                    # optional attributes

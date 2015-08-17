@@ -275,7 +275,7 @@ module BTC
       TransactionInput.new(previous_hash: @previous_hash.dup,
                           previous_index: @previous_index,
                         signature_script: @signature_script ? @signature_script.dup : nil,
-                           coinbase_data: @coinbase_data,
+                           coinbase_data: @coinbase_data ? @coinbase_data.dup : nil,
                                 sequence: @sequence,
                              transaction: @transaction,
                       transaction_output: @transaction_output, # not dup-ing txout because it's a transient object without #==

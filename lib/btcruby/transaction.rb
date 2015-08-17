@@ -402,7 +402,7 @@ module BTC
         # Blank out others' input sequence numbers to let others update transaction at will.
         tx.inputs.each_with_index do |txin, i|
           if i != input_index
-            tx.inputs[i].sequence = 0
+            txin.sequence = 0
           end
         end
       end # if hashtype is none or single
@@ -418,7 +418,9 @@ module BTC
       # Hash type is appended as a little endian uint32 unlike 1-byte suffix of the signature.
       data = tx.data + BTC::WireFormat.encode_uint32le(hash_type)
       hash = BTC.hash256(data)
-
+      # puts ""
+      # puts "SIGHASH[#{self.transaction_id}, input #{input_index}, hashtype 0x#{hash_type.to_s(16)}]: hash = #{BTC.id_from_hash(hash)}; tx = " + tx.inspect
+      # puts ""
       return hash
     end
 
