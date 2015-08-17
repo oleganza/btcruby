@@ -194,11 +194,20 @@ module BTC
     end
 
     def previous_id
-      BTC.id_from_hash(self.previous_hash)
+      BTC.id_from_hash(previous_hash)
     end
 
     def previous_id=(txid)
       self.previous_hash = BTC.hash_from_id(txid)
+    end
+    
+    def outpoint
+      Outpoint.new(transaction_hash: previous_hash, index: previous_index)
+    end
+    
+    def outpoint=(outpoint)
+      self.previous_hash = outpoint.transaction_hash
+      self.previous_index = outpoint.index
     end
 
     def value

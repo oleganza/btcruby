@@ -20,6 +20,7 @@ FLAGS_MAP = {
     "MINIMALDATA" =>                ScriptFlags::SCRIPT_VERIFY_MINIMALDATA,
     "DISCOURAGE_UPGRADABLE_NOPS" => ScriptFlags::SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
     "CLEANSTACK" =>                 ScriptFlags::SCRIPT_VERIFY_CLEANSTACK,
+    "CHECKLOCKTIMEVERIFY" =>        ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
 }
 
 def parse_script(json_script, expected_result = true)

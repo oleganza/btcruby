@@ -15,9 +15,17 @@ module BTC
 
     # Flags specified for this interpreter, not including flags added by plugins.
     attr_accessor :flags
-    
     attr_accessor :plugins
     attr_accessor :signature_checker
+    attr_accessor :raise_on_failure
+    attr_accessor :max_pushdata_size
+    attr_accessor :max_op_count
+    attr_accessor :max_stack_size
+    attr_accessor :max_script_size
+    attr_accessor :integer_max_size
+    attr_accessor :locktime_max_size
+    
+    # Execution state
     attr_accessor :stack
     attr_reader   :altstack
     attr_accessor :error # ScriptError instance
@@ -32,15 +40,18 @@ module BTC
                    max_pushdata_size: MAX_SCRIPT_ELEMENT_SIZE,
                    max_op_count:      MAX_OPS_PER_SCRIPT,
                    max_stack_size:    MAX_STACK_SIZE,
+                   max_script_size:   MAX_SCRIPT_SIZE,
                    integer_max_size:  4,
                    locktime_max_size: 5)
       @flags             = flags
       @plugins           = plugins || []
       @signature_checker = signature_checker
+      
       @raise_on_failure  = raise_on_failure
       @max_pushdata_size = max_pushdata_size
       @max_op_count      = max_op_count
       @max_stack_size    = max_stack_size
+      @max_script_size   = max_script_size
       @integer_max_size  = integer_max_size
       @locktime_max_size = locktime_max_size
     end
@@ -123,7 +134,7 @@ module BTC
     # Used internally in `verify_script` and also in unit tests.
     def run_script(script)
 
-      if script.data.bytesize > MAX_SCRIPT_SIZE
+      if script.data.bytesize > @max_script_size
         return set_error(SCRIPT_ERR_SCRIPT_SIZE)
       end
 
