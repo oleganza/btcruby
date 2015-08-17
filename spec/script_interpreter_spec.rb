@@ -5,7 +5,7 @@ require_relative 'data/script_invalid'
 describe BTC::ScriptInterpreter do
 
   module ScriptTestHelper
-    include BTC::ScriptFlags
+    include ScriptFlags
     extend self
 
     FLAGS_MAP = {
@@ -24,7 +24,7 @@ describe BTC::ScriptInterpreter do
 
     def parse_script(json_script, expected_result = true)
       # Note: individual 0xXX bytes may not be individually valid pushdatas, but will be valid when composed together.
-      # Since BTC::Script parses binary string right away, we need to compose all distinct bytes in a single hex string.
+      # Since Script parses binary string right away, we need to compose all distinct bytes in a single hex string.
       orig_string = json_script
       json_script = json_script.dup
       oldsize = json_script.size + 1
@@ -32,7 +32,7 @@ describe BTC::ScriptInterpreter do
         oldsize = json_script.size
         json_script.gsub!(/0x([0-9a-fA-F]+)\s+0x/, "0x\\1")
       end
-      json_script.split(" ").inject(BTC::Script.new) do |parsed_script, x|
+      json_script.split(" ").inject(Script.new) do |parsed_script, x|
         if x.size == 0
           # Empty string, ignore.
           parsed_script
@@ -40,20 +40,20 @@ describe BTC::ScriptInterpreter do
           # Number
           n = x.to_i
           if (n == -1) || (n >= 1 and n <= 16)
-            parsed_script << BTC::Opcode.opcode_for_small_integer(n)
+            parsed_script << Opcode.opcode_for_small_integer(n)
           else
-            parsed_script << BTC::ScriptNumber.new(integer: n).data
+            parsed_script << ScriptNumber.new(integer: n).data
           end
         elsif x[0,2] == "0x"
           # Raw hex data, inserted NOT pushed onto stack:
           data = BTC.from_hex(x[2..-1])
-          BTC::Script.new(data: parsed_script.data + data)
+          Script.new(data: parsed_script.data + data)
         elsif x =~ /^'.*'$/
           # Single-quoted string, pushed as data.
           parsed_script << x[1..-2]
         else
           # opcode, e.g. OP_ADD or ADD:
-          opcode = BTC::Opcode.opcode_for_name("OP_" + x)
+          opcode = Opcode.opcode_for_name("OP_" + x)
           parsed_script << opcode
         end
       end
@@ -122,8 +122,12 @@ describe BTC::ScriptInterpreter do
     def verify_script(sig_script, output_script, flags, expected_result, record)
       tx = buildSpendingTransaction(sig_script, buildCreditingTransaction(output_script));
       checker = TransactionSignatureChecker.new(transaction: tx, input_index: 0)
-      interpreter = BTC::ScriptInterpreter.new(
+      plugins = []
+      plugins << P2SHPlugin.new if (flags & SCRIPT_VERIFY_P2SH) != 0
+      plugins << CLTVPlugin.new if (flags & SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+      interpreter = ScriptInterpreter.new(
         flags: flags,
+        plugins: plugins,
         signature_checker: checker,
         raise_on_failure: false,
       )
