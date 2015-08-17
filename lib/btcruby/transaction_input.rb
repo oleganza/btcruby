@@ -209,6 +209,10 @@ module BTC
       self.previous_hash = outpoint.transaction_hash
       self.previous_index = outpoint.index
     end
+    
+    def final?
+      self.sequence == MAX_SEQUENCE
+    end
 
     def value
       return @value if @value
