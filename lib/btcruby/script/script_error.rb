@@ -126,7 +126,6 @@ module BTC
       when SCRIPT_ERR_PUBKEYTYPE
           return "Public key is neither compressed or uncompressed"
       when SCRIPT_ERR_UNKNOWN_ERROR
-      when SCRIPT_ERR_ERROR_COUNT
       end
       "unknown error"
     end
