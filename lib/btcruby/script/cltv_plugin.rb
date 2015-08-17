@@ -11,7 +11,7 @@ module BTC
     end
 
     def extra_flags
-      BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY
+      SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY
     end
 
     def should_handle_opcode(interpreter: nil, opcode: nil)
@@ -24,7 +24,7 @@ module BTC
       return false if opcode != OP_CHECKLOCKTIMEVERIFY
 
       if interpreter.stack.size < 1
-        return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
+        return interpreter.set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
       end
 
       # Note that elsewhere numeric opcodes are limited to
@@ -53,7 +53,7 @@ module BTC
       # Actually compare the specified lock time with the transaction.
       checker = @lock_time_checker || interpreter.signature_checker
       if !checker.check_lock_time(locktime)
-        return set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
+        return interpreter.set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
       end
 
       return true

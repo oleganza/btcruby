@@ -6,7 +6,7 @@ module BTC
     # Returns additional flags to be available to #flag? checks during script execution.
     # This way one plugin can affect evaluation of another.
     def extra_flags
-      BTC::ScriptFlags::SCRIPT_VERIFY_P2SH
+      SCRIPT_VERIFY_P2SH
     end
 
     # Every plugin gets this callback. If plugin return `false`, execution is stopped and interpreter returns `false`.
@@ -32,7 +32,7 @@ module BTC
 
       # scriptSig must be literals-only or validation fails
       if !signature_script.data_only?
-        return set_error(SCRIPT_ERR_SIG_PUSHONLY)
+        return interpreter.set_error(SCRIPT_ERR_SIG_PUSHONLY)
       end
 
       # Restore stack.

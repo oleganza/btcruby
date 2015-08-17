@@ -74,9 +74,16 @@ module BTC
         return false
       end
 
-      # FIXME: remove this
-      stack_copy = if flag?(SCRIPT_VERIFY_P2SH)
-        @stack.dup
+      # This is implemented in P2SHPlugin
+      # stack_copy = if flag?(SCRIPT_VERIFY_P2SH)
+      #   @stack.dup
+      # end
+
+      if plugin = plugin_to_handle_output_script(output_script)
+        return plugin.handle_output_script(
+          interpreter: self,
+          output_script: output_script
+        ) && verify_clean_stack_if_needed
       end
 
       if !run_script(output_script)
@@ -98,41 +105,7 @@ module BTC
       end
 
       # Additional validation for pay-to-script-hash (P2SH) transactions:
-      if flag?(SCRIPT_VERIFY_P2SH) && output_script.p2sh?
-
-        # scriptSig must be literals-only or validation fails
-        if !signature_script.data_only?
-          return set_error(SCRIPT_ERR_SIG_PUSHONLY)
-        end
-
-        # Restore stack.
-        @stack = stack_copy
-
-        # stack cannot be empty here, because if it was the
-        # P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
-        # an empty stack and the EvalScript above would return false.
-        raise "Stack cannot be empty" if @stack.empty?
-
-        serialized_redeem_script = stack_pop
-        begin
-          redeem_script = BTC::Script.new(data: serialized_redeem_script)
-        rescue => e
-          return set_error(SCRIPT_ERR_BAD_OPCODE, "Failed to parse serialized redeem script for P2SH. #{e.message}")
-        end
-
-        if !run_script(redeem_script)
-          # error is set in run_script
-          return false
-        end
-
-        if @stack.empty?
-          return set_error(SCRIPT_ERR_EVAL_FALSE)
-        end
-
-        if cast_to_bool(@stack.last) == false
-          return set_error(SCRIPT_ERR_EVAL_FALSE)
-        end
-      end
+      # See P2SHPlugin#did_execute_output_script.
 
       return verify_clean_stack_if_needed
     end
@@ -182,24 +155,29 @@ module BTC
             return set_error(SCRIPT_ERR_OP_COUNT)
           end
         end
+        
+        # Check if there is a plugin for this opcode before we check for disabled opcodes.
+        opcode_plugin = plugin_to_handle_opcode(opcode)
+        
+        if !opcode_plugin
+          if opcode == OP_CAT ||
+             opcode == OP_SUBSTR ||
+             opcode == OP_LEFT ||
+             opcode == OP_RIGHT ||
+             opcode == OP_INVERT ||
+             opcode == OP_AND ||
+             opcode == OP_OR ||
+             opcode == OP_XOR ||
+             opcode == OP_2MUL ||
+             opcode == OP_2DIV ||
+             opcode == OP_MUL ||
+             opcode == OP_DIV ||
+             opcode == OP_MOD ||
+             opcode == OP_LSHIFT ||
+             opcode == OP_RSHIFT
 
-        if opcode == OP_CAT ||
-           opcode == OP_SUBSTR ||
-           opcode == OP_LEFT ||
-           opcode == OP_RIGHT ||
-           opcode == OP_INVERT ||
-           opcode == OP_AND ||
-           opcode == OP_OR ||
-           opcode == OP_XOR ||
-           opcode == OP_2MUL ||
-           opcode == OP_2DIV ||
-           opcode == OP_MUL ||
-           opcode == OP_DIV ||
-           opcode == OP_MOD ||
-           opcode == OP_LSHIFT ||
-           opcode == OP_RSHIFT
-
-          return set_error(SCRIPT_ERR_DISABLED_OPCODE)
+            return set_error(SCRIPT_ERR_DISABLED_OPCODE)
+          end
         end
 
         if should_execute && 0 <= opcode && opcode <= OP_PUSHDATA4
@@ -208,6 +186,14 @@ module BTC
             return set_error(SCRIPT_ERR_MINIMALDATA)
           end
           stack_push(chunk.pushdata)
+
+        elsif should_execute && opcode_plugin
+          
+          if !opcode_plugin.handle_opcode(interpreter: self, opcode: opcode)
+            # error is set already
+            return false
+          end
+
         elsif should_execute || (OP_IF <= opcode && opcode <= OP_ENDIF)
 
           case opcode
@@ -225,48 +211,48 @@ module BTC
           when OP_NOP
             # nothing
 
-          when OP_CHECKLOCKTIMEVERIFY
-            begin
-              if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
-                # not enabled; treat as a NOP2
-                if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
-                  return set_error(SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS)
-                end
-                break # breaks out of begin ... end while false
-              end
-
-              if @stack.size < 1
-                return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
-              end
-
-              # Note that elsewhere numeric opcodes are limited to
-              # operands in the range -2**31+1 to 2**31-1, however it is
-              # legal for opcodes to produce results exceeding that
-              # range. This limitation is implemented by CScriptNum's
-              # default 4-byte limit.
-              #
-              # If we kept to that limit we'd have a year 2038 problem,
-              # even though the nLockTime field in transactions
-              # themselves is uint32 which only becomes meaningless
-              # after the year 2106.
-              #
-              # Thus as a special case we tell CScriptNum to accept up
-              # to 5-byte bignums, which are good until 2**39-1, well
-              # beyond the 2**32-1 limit of the nLockTime field itself.
-              locktime = cast_to_number(@stack.last, max_size: @locktime_max_size)
-
-              # In the rare event that the argument may be < 0 due to
-              # some arithmetic being done first, you can always use
-              # 0 MAX CHECKLOCKTIMEVERIFY.
-              if locktime < 0
-                return set_error(SCRIPT_ERR_NEGATIVE_LOCKTIME)
-              end
-
-              # Actually compare the specified lock time with the transaction.
-              if !signature_checker.check_lock_time(locktime)
-                return set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
-              end
-            end while false
+          # when OP_CHECKLOCKTIMEVERIFY
+          #   begin
+          #     if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
+          #       # not enabled; treat as a NOP2
+          #       if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
+          #         return set_error(SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS)
+          #       end
+          #       break # breaks out of begin ... end while false
+          #     end
+          # 
+          #     if @stack.size < 1
+          #       return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
+          #     end
+          # 
+          #     # Note that elsewhere numeric opcodes are limited to
+          #     # operands in the range -2**31+1 to 2**31-1, however it is
+          #     # legal for opcodes to produce results exceeding that
+          #     # range. This limitation is implemented by CScriptNum's
+          #     # default 4-byte limit.
+          #     #
+          #     # If we kept to that limit we'd have a year 2038 problem,
+          #     # even though the nLockTime field in transactions
+          #     # themselves is uint32 which only becomes meaningless
+          #     # after the year 2106.
+          #     #
+          #     # Thus as a special case we tell CScriptNum to accept up
+          #     # to 5-byte bignums, which are good until 2**39-1, well
+          #     # beyond the 2**32-1 limit of the nLockTime field itself.
+          #     locktime = cast_to_number(@stack.last, max_size: @locktime_max_size)
+          # 
+          #     # In the rare event that the argument may be < 0 due to
+          #     # some arithmetic being done first, you can always use
+          #     # 0 MAX CHECKLOCKTIMEVERIFY.
+          #     if locktime < 0
+          #       return set_error(SCRIPT_ERR_NEGATIVE_LOCKTIME)
+          #     end
+          # 
+          #     # Actually compare the specified lock time with the transaction.
+          #     if !signature_checker.check_lock_time(locktime)
+          #       return set_error(SCRIPT_ERR_UNSATISFIED_LOCKTIME)
+          #     end
+          #   end while false
 
           when OP_NOP1..OP_NOP10
             if flag?(SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -940,7 +926,16 @@ module BTC
 
     def plugin_to_handle_output_script(output_script)
       @plugins.each do |plugin|
-        if plugin.should_handle_output_script(interpreter: self, signature_script: signature_script, output_script: output_script)
+        if plugin.should_handle_output_script(interpreter: self, output_script: output_script)
+          return plugin
+        end
+      end
+      nil
+    end
+
+    def plugin_to_handle_opcode(opcode)
+      @plugins.each do |plugin|
+        if plugin.should_handle_opcode(interpreter: self, opcode: opcode)
           return plugin
         end
       end
