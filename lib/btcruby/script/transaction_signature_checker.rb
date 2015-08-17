@@ -17,11 +17,13 @@ module BTC
 
       # Extract raw ECDSA signature by stripping off the last hashtype byte
       ecdsa_sig = script_signature[0..-2]
-
+      
       key = BTC::Key.new(public_key: public_key)
       hash = @transaction.signature_hash(input_index: @input_index, output_script: script, hash_type: hashtype)
       result = key.verify_ecdsa_signature(ecdsa_sig, hash)
       return result
+    rescue BTC::FormatError => e # public key is invalid
+      return false
     end
 
     def check_lock_time(lock_time)
