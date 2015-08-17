@@ -103,6 +103,11 @@ describe BTC::ScriptInterpreter do
       ))
       txSpend
     end
+    
+    # ctx = buildCreditingTransaction(Script.new)
+    # stx = buildSpendingTransaction(Script.new, buildCreditingTransaction(Script.new))
+    # puts "crediting tx: #{ctx.transaction_hash.to_hex}" # e177c42f05a659138e28087326b687504d123c5834e21a49f306a24eabd2b72f
+    # puts "spending tx:  #{stx.transaction_hash.to_hex}" # 11d60a2babf8277968063fe8cc591bb92fc2aaf2a3e1d3c353434339d636d732
 
     def verify_script(sig_script, output_script, flags, expected_result, record)
       tx = buildSpendingTransaction(sig_script, buildCreditingTransaction(output_script));
