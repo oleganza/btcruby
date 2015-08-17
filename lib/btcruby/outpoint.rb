@@ -8,6 +8,9 @@ module BTC
     def initialize(transaction_hash: nil, transaction_id: nil, index: 0)
       @transaction_hash = transaction_hash
       self.transaction_id = transaction_id if transaction_id
+      while index < 0
+        index += 2**32
+      end
       @index = index
     end
     
