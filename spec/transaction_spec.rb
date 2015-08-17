@@ -1,4 +1,7 @@
 require_relative 'spec_helper'
+require_relative 'data/tx_valid'
+require_relative 'data/tx_invalid'
+
 describe BTC::Transaction do
 
   it "should have core attributes" do
@@ -18,6 +21,44 @@ describe BTC::Transaction do
       "out"=>[]
     })
 
+  end
+  
+  describe "Bitcoin Core valid/invalid tests" do
+    
+    module TxTestHelper
+      extend self
+      
+      # Read tests from test/data/tx_valid.json
+      # Format is an array of arrays
+      # Inner arrays are either [ "comment" ]
+      # or [[[prevout hash, prevout index, prevout scriptPubKey], [input 2], ...],"], serializedTransaction, verifyFlags
+      # ... where all scripts are stringified scripts.
+      #
+      # verifyFlags is a comma separated list of script verification flags to apply, or "NONE"
+      def parse_tests(records, expected_result)
+        records = records.find_all{|r| r[0].is_a?(Array) }
+        records.each do |test|
+          if (test.size != 3 || !test[1].is_a?(String) || !test[2].is_a?(String))
+            raise "Bad test: #{test}"
+          end
+          mapprevOutScriptPubKeys = {} # Outpoint => Script
+          inputs = test[0]
+          
+        end
+      end
+    end
+    
+    TxTestHelper.parse_tests(ValidTxs, true) do |helper, record|
+      it "should validate transaction #{record.inspect}" do
+        
+      end
+    end
+    
+    TxTestHelper.parse_tests(InvalidTxs, false) do |helper, record|
+      it "should fail transaction #{record.inspect}" do
+        
+      end
+    end
   end
 
   describe "Hash <-> ID conversion" do
