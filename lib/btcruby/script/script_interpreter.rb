@@ -221,7 +221,8 @@ module BTC
 
           when OP_NOP
             # nothing
-
+            
+          # See CLTVPlugin
           # when OP_CHECKLOCKTIMEVERIFY
           #   begin
           #     if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
