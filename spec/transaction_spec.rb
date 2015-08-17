@@ -56,18 +56,48 @@ describe BTC::Transaction do
           
             tx = Transaction.new(hex: test[1])
             flags = parse_flags(test[2])
-          
-            tx.inputs.each do |txin|
-              output_script = mapprevOutScriptPubKeys[txin.outpoint]
-              raise "Bad test: output script not found: #{test.inspect}" if !output_script
-              sig_script = txin.signature_script
-              if !sig_script
-                sig_script = Script.new(data: txin.coinbase_data)
-              end
-              if debug_filter(test)
-                yield(self, tx, txin, sig_script, output_script, flags, expected_result, test, comment)
-              end
-            end
+            
+            if debug_filter(test)
+              validation_proc = lambda do
+                validation_passed = Validation.new.check_transaction(tx, ValidationState.new)
+                if expected_result
+                  validation_passed.must_equal expected_result
+                end
+                script_passed = false
+              
+                if validation_passed
+                  tx.inputs.each do |txin|
+                    output_script = mapprevOutScriptPubKeys[txin.outpoint]
+                    raise "Bad test: output script not found: #{test.inspect}" if !output_script
+                    sig_script = txin.signature_script
+                    if !sig_script
+                      sig_script = Script.new(data: txin.coinbase_data)
+                    end
+                    
+                    checker = TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
+                    plugins = []
+                    plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+                    plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+                    interpreter = ScriptInterpreter.new(
+                      flags: flags,
+                      plugins: plugins,
+                      signature_checker: checker,
+                      raise_on_failure: expected_result,
+                    )
+                    #Diagnostics.current.trace do
+                      script_passed = interpreter.verify_script(signature_script: sig_script, output_script: output_script)
+                      if !script_passed
+                        break
+                      end
+                    #end
+                  end
+                end
+                (script_passed && validation_passed).must_equal expected_result
+              end # proc
+              
+              yield(comment || test.inspect, validation_proc)
+            end # if not filtered
+            
             comment = nil
           else
             comment ||= ""
@@ -79,51 +109,68 @@ describe BTC::Transaction do
       
       def debug_filter(test)
         
+        #return test.inspect[%{010000000200010000000000000000000000000000000000000000000000000000000000000000000000ffffffff00020000000000000000000000000000000000000000000000000000000000000100000000000000000100000000000000000000000000}]
+        
+        
         # !!! SIGHASH_SINGLE tx: afd9c17f8913577ec3509520bd6e5d63e9c0fd2a5f70c787993b097ba6ca9fae hashed for input 0: 1eccdc1f7a4783924a49113b491a847de2f89a1e7d73b1ae561d80f918035f46
         # !!! SIGHASH_SINGLE tx: afd9c17f8913577ec3509520bd6e5d63e9c0fd2a5f70c787993b097ba6ca9fae hashed for input 1: 1943e87af64d0bde608a85330f09aa5c9887a4fdfd9ca6d7a139bef27fee8e3b
         # !!! SIGHASH_SINGLE tx: afd9c17f8913577ec3509520bd6e5d63e9c0fd2a5f70c787993b097ba6ca9fae hashed for input 2: 1c1f068da6a721f2ecb0fdac3b8adcb4073fee34506971472d29d305507894d6
-        
         #return test.inspect[%{DUP HASH160 0x14 0xdcf72c4fd02f5a987cf9b02f2fabfcac3341a87d EQUALVERIFY CHECKSIG}]
+        
         #return test.inspect[%{[[["60a20bd93aa49ab4b28d514ec10b06e1829ce6818ec06cd3aabd013ebcdc4bb1", 0, "1 0x41 0x04cc71eb30d653c0c3163990c47b976f3fb3f37cccdcbedb169a1dfef58bbfbfaff7d8a473e7e2e6d317b87bafe8bde97e3cf8f065dec022b51d11fcdd0d348ac4 0x41 0x0461cbdcc5409fb4b4d42b51d33381354d80e550078cb532a34bfa2fcfdeb7d76519aecc62770f5b0e4ef8551946d8a540911abe3e7854a26f39f58b25c15342af 2 OP_CHECKMULTISIG"]], "0100000001b14bdcbc3e01bdaad36cc08e81e69c82e1060bc14e518db2b49aa43ad90ba26000000000490047304402203f16c6f40162ab686621ef3000b04e75418a0c0cb2d8aebeac894ae360ac1e780220ddc15ecdfc3507ac48e1681a33eb60996631bf6bf5bc0a0682c4db743ce7ca2b01ffffffff0140420f00000000001976a914660d4ef3a743e3e696ad990364e555c271ad504b88ac00000000", "P2SH"]}]
         true
       end
       
-      def verify_script(tx, txin, sig_script, output_script, flags, expected_result, record)
-        checker = TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
-        plugins = []
-        plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
-        plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
-        interpreter = ScriptInterpreter.new(
-          flags: flags,
-          plugins: plugins,
-          signature_checker: checker,
-          raise_on_failure: true,
-        )
-        #Diagnostics.current.trace do
-          result = interpreter.verify_script(signature_script: sig_script, output_script: output_script)
-          if result != expected_result
-            # puts "Failed scripts: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags}, expected to #{expected_result ? 'succeed' : 'fail'}".gsub(/OP_/, "")
-            # puts "Error: #{interpreter.error.inspect}"
-            #debug("Failed #{expected_result ? 'valid' : 'invalid'} script: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags} -- #{record.inspect}")
-          end
-          result.must_equal expected_result
-        #end
-      end
+      # def verify_script(tx, txin, sig_script, output_script, flags, expected_result, record)
+      #   checker = TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
+      #   plugins = []
+      #   plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+      #   plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+      #   interpreter = ScriptInterpreter.new(
+      #     flags: flags,
+      #     plugins: plugins,
+      #     signature_checker: checker,
+      #     raise_on_failure: expected_result,
+      #   )
+      #   #Diagnostics.current.trace do
+      #     checked = Validation.new.check_transaction(tx, ValidationState.new)
+      #     if expected_result
+      #       checked.must_equal expected_result
+      #     end
+      #     result = false
+      #     if checked
+      #       result = interpreter.verify_script(signature_script: sig_script, output_script: output_script)
+      #       if result != expected_result
+      #         # puts "Failed scripts: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags}, expected to #{expected_result ? 'succeed' : 'fail'}".gsub(/OP_/, "")
+      #         # puts "Error: #{interpreter.error.inspect}"
+      #         #debug("Failed #{expected_result ? 'valid' : 'invalid'} script: #{sig_script.to_s.inspect} #{output_script.to_s.inspect} flags #{flags} -- #{record.inspect}")
+      #       end
+      #     end
+      #     puts
+      #     puts record.inspect
+      #     puts "---------------------------" 
+      #     puts (result && checked).inspect
+      #     puts
+      #     (result && checked).must_equal expected_result
+      #   #end
+      # end
       
       
     end
     
-    TxTestHelper.parse_tests(ValidTxs, true) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record, comment|
-      it "should validate transaction: #{comment || record.inspect}" do
-        TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
+    TxTestHelper.parse_tests(ValidTxs, true) do |comment, validation_proc|
+      it "should validate transaction: #{comment}" do
+        validation_proc.call
+        #TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
       end
     end
     
-    # TxTestHelper.parse_tests(InvalidTxs, false) do |helper, tx, txin, signature_script, output_script, flags, expected_result, record, comment|
-    #   it "should fail transaction #{comment || record.inspect}" do
-    #     TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
-    #   end
-    # end
+    TxTestHelper.parse_tests(InvalidTxs, false) do |comment, validation_proc| # |helper, tx, txin, signature_script, output_script, flags, expected_result, record, comment|
+      it "should fail transaction: #{comment}" do
+        validation_proc.call
+        #TxTestHelper.verify_script(tx, txin, signature_script, output_script, flags, expected_result, record)
+      end
+    end
   end
 
   describe "Hash <-> ID conversion" do

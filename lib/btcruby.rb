@@ -27,6 +27,7 @@ require_relative 'btcruby/outpoint.rb'
 require_relative 'btcruby/transaction.rb'
 require_relative 'btcruby/transaction_input.rb'
 require_relative 'btcruby/transaction_output.rb'
+require_relative 'btcruby/validation.rb'
 
 require_relative 'btcruby/script/script_error.rb'
 require_relative 'btcruby/script/script_flags.rb'

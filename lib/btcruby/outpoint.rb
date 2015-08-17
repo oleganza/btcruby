@@ -1,6 +1,9 @@
 module BTC
   # Represents a reference to a previous transaction.
   class Outpoint
+    INVALID_INDEX = 0xFFFFFFFF # aka "(unsigned int) -1" in BitcoinQT.
+    ZERO_HASH256  = ("\x00".b*32).freeze
+    
     attr_accessor :transaction_hash
     attr_accessor :transaction_id
     attr_accessor :index
@@ -24,6 +27,10 @@ module BTC
     
     def outpoint_id
       %{#{transaction_id}:#{index}}
+    end
+    
+    def null?
+      @index == INVALID_INDEX && @transaction_hash == ZERO_HASH256
     end
 
     def ==(other)
