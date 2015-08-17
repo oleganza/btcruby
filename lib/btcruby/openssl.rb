@@ -415,7 +415,7 @@ module BTC
         if result == 0
           Diagnostics.current.add_message("OpenSSL detected invalid ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}")
         else
-          raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}"
+          raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}; Result: #{result}"
         end
         return false
       end
