@@ -345,6 +345,10 @@ module BTC
     # Normalizes S value of the signature and returns normalized signature.
     # Returns nil if signature is completely invalid.
     def ecdsa_normalized_signature(signature)
+      ecdsa_reserialize_signature(signature, normalize_s: true)
+    end
+    
+    def ecdsa_reserialize_signature(signature, normalize_s: false)
       raise ArgumentError, "Signature is missing" if !signature
 
       autorelease do |pool|
@@ -358,15 +362,19 @@ module BTC
         buf = FFI::MemoryPointer.from_string(signature)
         psig = d2i_ECDSA_SIG(nil, pointer_to_pointer(buf), buf.size-1)
         if psig.null?
-          raise BTCError, "OpenSSL failed to read ECDSA signature with DER: #{BTC.to_hex(signature).inspect}"
+          Diagnostics.current.add_message("OpenSSL failed to read ECDSA signature with DER during reserialize: #{BTC.to_hex(signature).inspect}")
+          return signature
+          #raise BTCError, "OpenSSL failed to read ECDSA signature with DER: #{BTC.to_hex(signature).inspect}"
         end
 
         sig = ECDSA_SIG.new(psig) # read sig from its pointer
-        s = sig[:s]
-
-        # Enforce low S values, by negating the value (modulo the order) if above order/2.
-        if BN_cmp(s, halfn) > 0
-          BN_sub(s, n, s)
+        
+        if normalize_s
+          # Enforce low S values, by negating the value (modulo the order) if above order/2.
+          s = sig[:s]
+          if BN_cmp(s, halfn) > 0
+            BN_sub(s, n, s)
+          end
         end
 
         # Note: we'll place new s value back to s bignum,
@@ -393,6 +401,9 @@ module BTC
       raise ArgumentError, "Signature is missing" if !signature
       raise ArgumentError, "Hash is missing" if !hash
       raise ArgumentError, "Public key is missing" if !public_key
+      
+      # New versions of OpenSSL will reject non-canonical DER signatures. de/re-serialize first.
+      signature = ecdsa_reserialize_signature(signature, normalize_s: false)
 
       autorelease do |pool|
         eckey = pool.new_ec_key
@@ -400,13 +411,14 @@ module BTC
         buf = FFI::MemoryPointer.from_string(public_key)
         eckey = o2i_ECPublicKey(pointer_to_pointer(eckey), pointer_to_pointer(buf), buf.size - 1)
         if eckey.null?
+          Diagnostics.current.add_message("OpenSSL failed to create EC_KEY with public key: #{BTC.to_hex(public_key).inspect}")
           raise BTCError, "OpenSSL failed to create EC_KEY with public key: #{BTC.to_hex(public_key).inspect}"
         end
 
         # -1 = error, 0 = bad sig, 1 = good
         hash_buf = FFI::MemoryPointer.from_string(hash)
         sig_buf = FFI::MemoryPointer.from_string(signature)
-        result = ECDSA_verify(0, hash_buf, hash_buf.size-1, sig_buf, sig_buf.size-1, eckey)
+        result = ECDSA_verify(0, hash_buf, hash.bytesize, sig_buf, signature.bytesize, eckey)
 
         if result == 1
           return true
@@ -415,7 +427,9 @@ module BTC
         if result == 0
           Diagnostics.current.add_message("OpenSSL detected invalid ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}")
         else
-          raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}; Result: #{result}"
+          Diagnostics.current.add_message("OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}; Result: #{result}")
+          return false
+          # raise BTCError, "OpenSSL failed with error while verifying ECDSA signature. Signature: #{BTC.to_hex(signature).inspect}; Hash: #{BTC.to_hex(hash).inspect}; Pubkey: #{BTC.to_hex(public_key).inspect}; Result: #{result}"
         end
         return false
       end
