@@ -59,7 +59,11 @@ describe BTC::Transaction do
           tx.inputs.each do |txin|
             output_script = mapprevOutScriptPubKeys[txin.outpoint]
             raise "Bad test: output script not found: #{test.inspect}" if !output_script
-            yield(self, tx, txin, txin.signature_script, output_script, flags, expected_result, test)
+            sig_script = txin.signature_script
+            if !sig_script
+              sig_script = Script.new(data: txin.coinbase_data)
+            end
+            yield(self, tx, txin, sig_script, output_script, flags, expected_result, test)
           end
         end
       end
