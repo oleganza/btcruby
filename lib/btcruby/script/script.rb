@@ -249,7 +249,7 @@ module BTC
     def data_only?
       # Include PUSHDATA ops and OP_0..OP_16 literals.
       @chunks.each do |chunk|
-        return false if chunk.opcode > OP_16
+        return false if !chunk.data_only?
       end
       return true
     end
@@ -590,13 +590,18 @@ module BTC
       def pushdata?
         # Compact pushdata opcodes are "virtual", just length prefixes.
         # Attention: OP_0 is also "pushdata" code that pushes empty data.
-        self.opcode <= OP_PUSHDATA4
+        opcode <= OP_PUSHDATA4
+      end
+
+      def data_only?
+        opcode <= OP_16
       end
 
       # Returns true if this chunk is in canonical form (the most compact one).
       # Returns false if it contains pushdata with too big length prefix.
       # Example of non-canonical chunk: 75 bytes pushed with OP_PUSHDATA1 instead
       # of simple 0x4b prefix.
+      # Note: this is not as strict as `check_minimal_push` in ScriptInterpreter.
       def canonical?
         opcode = self.opcode
         if opcode < OP_PUSHDATA1
