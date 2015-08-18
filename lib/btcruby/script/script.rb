@@ -13,6 +13,9 @@ module BTC
     # If it is not a multisig script, returns nil.
     # See also #multisig_script?
     attr_reader :multisig_signatures_required
+    
+    # Returns an array of chunks that constitute the script.
+    attr_reader :chunks
 
     def initialize(hex: nil, # raw script data in hex
                    data: nil, # raw script data in binary
@@ -489,8 +492,6 @@ module BTC
 
     # Private API
     # -----------
-
-    attr_reader :chunks
 
     # If opcode is nil, then the most compact encoding will be chosen.
     # Returns nil if opcode can't be used for data, or data is nil or too big.

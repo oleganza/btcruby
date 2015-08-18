@@ -71,7 +71,7 @@ describe BTC::Script do
   end
 
 
-  it "removing subscript does not modify receiver" do
+  it "removing subscript does not modify the receiver" do
     s = Script.new << OP_DUP << OP_HASH160 << OP_CODESEPARATOR << "some data" << OP_EQUALVERIFY << OP_CHECKSIG
     s1 = s.dup
     s2 = s1.find_and_delete(Script.new << OP_HASH160)
@@ -89,6 +89,12 @@ describe BTC::Script do
     s = Script.new.append_pushdata("foo").append_pushdata("foo", opcode:OP_PUSHDATA1)
     s2 = s.find_and_delete(Script.new << "foo")
     s2.must_equal(Script.new.append_pushdata("foo", opcode:OP_PUSHDATA1))
+  end
+
+  it "should parse interpreted data and pushdata correctly" do
+    script = Script.new << OP_0 << OP_1NEGATE << OP_NOP << OP_RESERVED << OP_1 << OP_16 << "1" << "2" << "chancellor"
+    script.chunks.map{|c| c.interpreted_data }.must_equal ["", "\x81".b, nil, nil, "\x01".b, "\x10".b, "1", "2", "chancellor"]
+    script.chunks.map{|c| c.pushdata }.must_equal ["", nil, nil, nil, nil, nil, "1", "2", "chancellor"]
   end
 
 end
