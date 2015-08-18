@@ -2,6 +2,14 @@
 BTCRuby Release Notes
 =====================
 
+1.1.4 (August 18, 2015)
+-----------------------
+
+* Public API for `ScriptChunk` instances.
+* Added `ScriptChunk#data_only?`.
+* Added `ScriptChunk#interpreted_data`.
+
+
 1.1.3 (August 17, 2015)
 -----------------------
 

@@ -561,8 +561,6 @@ module BTC
       @multisig_signatures_required = m
       return true
     end
-    
-    # For backwards compatibility keep Script::Chunk
-    Chunk = ScriptChunk
+
   end # Script
 end # BTC
