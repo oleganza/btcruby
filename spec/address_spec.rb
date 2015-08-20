@@ -32,7 +32,7 @@ describe BTC::Address do
 
     address.data.must_equal "243f1394f44554f4ce3fd68649c19adc483ce924".from_hex
 
-    address2 = BTC::PublicKeyAddress.new(hash: "243f1394f44554f4ce3fd68649c19adc483ce924".from_hex, network: Network.testnet)
+    address2 = BTC::PublicKeyAddress.new(hash: "243f1394f44554f4ce3fd68649c19adc483ce924".from_hex, network: BTC::Network.testnet)
 
     address2.to_s.must_equal("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn")
     address2.data.must_equal("243f1394f44554f4ce3fd68649c19adc483ce924".from_hex)
@@ -40,13 +40,13 @@ describe BTC::Address do
 
   it "should detect invalid pay-to-pubkey-hash address" do
     lambda { BTC::Address.parse(nil) }.must_raise ArgumentError
-    lambda { BTC::Address.parse("") }.must_raise FormatError
-    lambda { BTC::Address.parse("18FGfswVqxNubJbh1NW8A4t51T9x9RDVWQ") }.must_raise FormatError
-    lambda { BTC::Address.parse("19FGfswVqxNubJbh1NW8A4t51T9x9RDvwq") }.must_raise FormatError
-    lambda { BTC::Address.parse("19FGfswVqxNubJbh1NW8A4t51T9x9RD") }.must_raise FormatError
-    lambda { BTC::Address.parse("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRf") }.must_raise FormatError
-    lambda { BTC::Address.parse("m") }.must_raise FormatError
-    lambda { BTC::Address.parse("mipc") }.must_raise FormatError
+    lambda { BTC::Address.parse("") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("18FGfswVqxNubJbh1NW8A4t51T9x9RDVWQ") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("19FGfswVqxNubJbh1NW8A4t51T9x9RDvwq") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("19FGfswVqxNubJbh1NW8A4t51T9x9RD") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRf") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("m") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("mipc") }.must_raise BTC::FormatError
   end
 
   it "should decode/encode mainnet pay-to-script-hash address" do
@@ -89,12 +89,12 @@ describe BTC::Address do
   end
 
   it "should detect invalid pay-to-script-hash address" do
-    lambda { BTC::Address.parse("3ektnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX") }.must_raise FormatError
-    lambda { BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzqX") }.must_raise FormatError
-    lambda { BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSg") }.must_raise FormatError
-    lambda { BTC::Address.parse("2mzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc") }.must_raise FormatError
-    lambda { BTC::Address.parse("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1vc") }.must_raise FormatError
-    lambda { BTC::Address.parse("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJ") }.must_raise FormatError
+    lambda { BTC::Address.parse("3ektnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzqX") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSg") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("2mzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1vc") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJ") }.must_raise BTC::FormatError
   end
 
 
@@ -139,12 +139,12 @@ describe BTC::Address do
   end
 
   it "should detect invalid private key address" do
-    lambda { BTC::Address.parse("5kJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZXj3hS") }.must_raise FormatError
-    lambda { BTC::Address.parse("5KJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZXj3hs") }.must_raise FormatError
-    lambda { BTC::Address.parse("5KJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZ") }.must_raise FormatError
-    lambda { BTC::Address.parse("L3P8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJF9woSu") }.must_raise FormatError
-    lambda { BTC::Address.parse("L3p8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJF9woSU") }.must_raise FormatError
-    lambda { BTC::Address.parse("L3p8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJ") }.must_raise FormatError
+    lambda { BTC::Address.parse("5kJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZXj3hS") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("5KJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZXj3hs") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("5KJvsngHeMpm884wtkJNzQGaCErckhHJBGFsvd3VyK5qMZ") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("L3P8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJF9woSu") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("L3p8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJF9woSU") }.must_raise BTC::FormatError
+    lambda { BTC::Address.parse("L3p8oAcQTtuokSCRHQ7i4MhjWc9zornvpJLfmg62sYpLRJ") }.must_raise BTC::FormatError
   end
 
   it "should convert strings and addresses into normalized address" do
@@ -191,8 +191,8 @@ describe BTC::Address do
   it "should detect if wrong subclass is used when parsing an address" do
     btc_addr_string = "19FGfswVqxNubJbh1NW8A4t51T9x9RDVWQ"
     asset_addr_string = "akB4NBW9UuCmHuepksob6yfZs6naHtRCPNy"
-    btc_addr = Address.parse(btc_addr_string)
-    asset_addr = Address.parse(asset_addr_string)
+    btc_addr = BTC::Address.parse(btc_addr_string)
+    asset_addr = BTC::Address.parse(asset_addr_string)
 
     ->{ BTC::AssetAddress.parse(btc_addr_string) }.must_raise ArgumentError
     ->{ BTC::AssetAddress.parse(btc_addr) }.must_raise ArgumentError

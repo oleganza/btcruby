@@ -49,17 +49,17 @@ describe BTC::Transaction do
               raise "Bad test: input is an array of 3 items: #{test.inspect}" if input.size != 3
               previd, previndex, scriptstring = input
             
-              outpoint = Outpoint.new(transaction_id: previd, index: previndex)
+              outpoint = BTC::Outpoint.new(transaction_id: previd, index: previndex)
             
               mapprevOutScriptPubKeys[outpoint] = parse_script(scriptstring)
             end
           
-            tx = Transaction.new(hex: test[1])
+            tx = BTC::Transaction.new(hex: test[1])
             flags = parse_flags(test[2])
             
             if debug_filter(test)
               validation_proc = lambda do
-                validation_passed = Validation.new.check_transaction(tx, ValidationState.new)
+                validation_passed = BTC::Validation.new.check_transaction(tx, BTC::ValidationState.new)
                 if expected_result
                   validation_passed.must_equal expected_result
                 end
@@ -71,14 +71,14 @@ describe BTC::Transaction do
                     raise "Bad test: output script not found: #{test.inspect}" if !output_script
                     sig_script = txin.signature_script
                     if !sig_script
-                      sig_script = Script.new(data: txin.coinbase_data)
+                      sig_script = BTC::Script.new(data: txin.coinbase_data)
                     end
                     
-                    checker = TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
+                    checker = BTC::TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
                     plugins = []
-                    plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
-                    plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
-                    interpreter = ScriptInterpreter.new(
+                    plugins << BTC::P2SHPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+                    plugins << BTC::CLTVPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+                    interpreter = BTC::ScriptInterpreter.new(
                       flags: flags,
                       plugins: plugins,
                       signature_checker: checker,
@@ -190,7 +190,7 @@ describe BTC::Transaction do
     end
 
     it "should convert hash to/from id for TransactionOutput" do
-      txout = TransactionOutput.new
+      txout = BTC::TransactionOutput.new
       txout.transaction_hash = @txhash
       txout.transaction_id.must_equal @txid
       txout.transaction_id = "deadbeef"
@@ -201,11 +201,11 @@ describe BTC::Transaction do
 
   describe "Amounts calculation" do
     before do
-      @tx = Transaction.new
-      @tx.add_input(TransactionInput.new)
-      @tx.add_input(TransactionInput.new)
-      @tx.add_output(TransactionOutput.new(value: 123))
-      @tx.add_output(TransactionOutput.new(value: 50_000))
+      @tx = BTC::Transaction.new
+      @tx.add_input(BTC::TransactionInput.new)
+      @tx.add_input(BTC::TransactionInput.new)
+      @tx.add_output(BTC::TransactionOutput.new(value: 123))
+      @tx.add_output(BTC::TransactionOutput.new(value: 50_000))
     end
 
     it "should have good defaults" do
@@ -257,8 +257,8 @@ describe BTC::Transaction do
                 "2ac0ba2afa7ada4660bd38e27585aac7d4e6e435ffffffff02c0791817000000" +
                 "0017a914bd224370f93a2b0435ded92c7f609e71992008fc87ac7b4d1d000000" +
                 "001976a914450c22770eebb00d376edabe7bb548aa64aa235688ac00000000").from_hex
-      @tx = Transaction.new(hex: @txdata.to_hex)
-      @tx = Transaction.new(data: @txdata)
+      @tx = BTC::Transaction.new(hex: @txdata.to_hex)
+      @tx = BTC::Transaction.new(data: @txdata)
     end
 
     it "should decode inputs and outputs correctly" do
@@ -291,7 +291,7 @@ describe BTC::Transaction do
         "043304596050ca119efccada1dd7ca8e511a76d8e1ddb7ad050298d208455b8bcd09593d823ca252355bf0b41c2ac0ba2afa7ada4660bd38e27585aac7d4e6e435"
       ]
 
-      Diagnostics.current.trace do
+      BTC::Diagnostics.current.trace do
         BTC::Key.validate_script_signature(@tx.inputs.first.signature_script.to_a[0], verify_lower_s: true).must_equal true
       end
     end
@@ -304,7 +304,7 @@ describe BTC::Transaction do
                 "0000000000ffffffff130301e6040654188d181202119700de00000fccffffff" +
                 "ff0108230595000000001976a914ca6ecc7d4d671d8c5c964a48dbb0bc194407" +
                 "a30688ac00000000").from_hex
-      @tx = Transaction.new(data: @txdata)
+      @tx = BTC::Transaction.new(data: @txdata)
     end
 
     it "should encode coinbase inputs correctly" do

@@ -27,6 +27,7 @@
 #
 module BTC
   class Address
+    include Opcodes
     @@registered_classes = []
     
     # Decodes address from a Base58Check-encoded string

@@ -3,7 +3,7 @@ require_relative '../spec_helper'
 describe BTC::AssetTransactionBuilder do
 
   class SignerByKey
-    include TransactionBuilder::Signer
+    include BTC::TransactionBuilder::Signer
     def initialize(&block)
       @block = block
     end
@@ -18,7 +18,7 @@ describe BTC::AssetTransactionBuilder do
       builder = BTC::AssetTransactionBuilder.new
 
       @all_wallet_utxos = self.mock_wallet_utxos
-      builder.bitcoin_provider = TransactionBuilder::Provider.new do |txb|
+      builder.bitcoin_provider = BTC::TransactionBuilder::Provider.new do |txb|
         @all_wallet_utxos
       end
       builder.signer = SignerByKey.new do |output, address|
@@ -86,7 +86,7 @@ describe BTC::AssetTransactionBuilder do
       builder = BTC::AssetTransactionBuilder.new
 
       @all_wallet_utxos = self.mock_wallet_utxos
-      builder.bitcoin_provider = TransactionBuilder::Provider.new do |txb|
+      builder.bitcoin_provider = BTC::TransactionBuilder::Provider.new do |txb|
         @all_wallet_utxos
       end
       builder.signer = SignerByKey.new do |output, address|
@@ -97,15 +97,15 @@ describe BTC::AssetTransactionBuilder do
       # Each transfer may have its own unspents and its own change address.
       # If those are not specified, a per-builder setting is chosen.
 
-      @asset1 = AssetID.new(script: Script.new << OP_1)
-      @asset2 = AssetID.new(script: Script.new << OP_2)
+      @asset1 = BTC::AssetID.new(script: BTC::Script.new << BTC::OP_1)
+      @asset2 = BTC::AssetID.new(script: BTC::Script.new << BTC::OP_2)
 
       builder.transfer_asset(
         asset_id: @asset1,
         amount: 10_000,
         address: holder2_asset_address,
         unspent_outputs: [
-          AssetTransactionOutput.new(
+          BTC::AssetTransactionOutput.new(
             transaction_output: mock_utxo(value: 1000),
             asset_id: @asset1,
             value: 11_000,
@@ -121,7 +121,7 @@ describe BTC::AssetTransactionBuilder do
         amount: 50_000,
         address: holder1_asset_address,
         unspent_outputs: [
-          AssetTransactionOutput.new(
+          BTC::AssetTransactionOutput.new(
             transaction_output: mock_utxo(value: 1000),
             asset_id: @asset2,
             value: 150_000,
@@ -136,7 +136,7 @@ describe BTC::AssetTransactionBuilder do
       builder.bitcoin_change_address = wallet2_key.address
 
       # Send leftover assets to this address.
-      builder.asset_change_address = AssetAddress.new(bitcoin_address: holder2_key.address)
+      builder.asset_change_address = BTC::AssetAddress.new(bitcoin_address: holder2_key.address)
 
       # Build transactions.
       @builder = builder
@@ -174,35 +174,35 @@ describe BTC::AssetTransactionBuilder do
   # Mocked wallet
 
   def wallet1_key
-    @wallet1_key ||= Key.new(private_key: "Wallet1".sha256)
+    @wallet1_key ||= BTC::Key.new(private_key: "Wallet1".sha256)
   end
 
   def wallet2_key
-    @wallet2_key ||= Key.new(private_key: "Wallet2".sha256)
+    @wallet2_key ||= BTC::Key.new(private_key: "Wallet2".sha256)
   end
 
   def issuer1_key
-    @issuer1_key ||= Key.new(private_key: "Issuer1".sha256)
+    @issuer1_key ||= BTC::Key.new(private_key: "Issuer1".sha256)
   end
 
   def issuer2_key
-    @issuer2_key ||= Key.new(private_key: "Issuer2".sha256)
+    @issuer2_key ||= BTC::Key.new(private_key: "Issuer2".sha256)
   end
 
   def holder1_key
-    @holder1_key ||= Key.new(private_key: "Holder1".sha256)
+    @holder1_key ||= BTC::Key.new(private_key: "Holder1".sha256)
   end
 
   def holder2_key
-    @holder2_key ||= Key.new(private_key: "Holder2".sha256)
+    @holder2_key ||= BTC::Key.new(private_key: "Holder2".sha256)
   end
 
   def holder1_asset_address
-    AssetAddress.new(bitcoin_address: holder1_key.address)
+    BTC::AssetAddress.new(bitcoin_address: holder1_key.address)
   end
 
   def holder2_asset_address
-    AssetAddress.new(bitcoin_address: holder2_key.address)
+    BTC::AssetAddress.new(bitcoin_address: holder2_key.address)
   end
 
   def mock_wallet_keys
@@ -222,17 +222,17 @@ describe BTC::AssetTransactionBuilder do
   def mock_wallet_utxos
     scripts = mock_wallet_addresses.map{|a| a.script }
     (1..32).map do |i|
-      TransactionOutput.new(value:  100_000,
+      BTC::TransactionOutput.new(value:  100_000,
                            script: scripts[i % scripts.size],
                  transaction_hash: ((16+i).to_s(16)*32).from_hex,
                             index: i)
     end
   end
 
-  def mock_utxo(value: 100_000, index: 0, script: Script.new << OP_1)
-    TransactionOutput.new(value: value,
+  def mock_utxo(value: 100_000, index: 0, script: BTC::Script.new << BTC::OP_1)
+    BTC::TransactionOutput.new(value: value,
                          script: script,
-               transaction_hash: Key.random.private_key.sha256,
+               transaction_hash: BTC::Key.random.private_key.sha256,
                           index: index)
   end
 
@@ -252,17 +252,17 @@ describe "Issuing an asset" do
     issuing_script = issuer.address.script
     holding_script = holder.address.script
 
-    source_output = TransactionOutput.new(value: 100, script: issuing_script)
+    source_output = BTC::TransactionOutput.new(value: 100, script: issuing_script)
 
     # These are set automatically if source_output is a part of some BTC::Transaction
     # We need these to complete the input for the transfer transaction.
-    source_output.transaction_hash = BTC::Data.hash256("some tx")
+    source_output.transaction_hash = BTC.hash256("some tx")
     source_output.index = 0
 
-    transfer = Transaction.new
-    transfer.add_input(TransactionInput.new(transaction_output: source_output))
-    transfer.add_output(TransactionOutput.new(value: source_output.value, script: holding_script))
-    marker = AssetMarker.new
+    transfer = BTC::Transaction.new
+    transfer.add_input(BTC::TransactionInput.new(transaction_output: source_output))
+    transfer.add_output(BTC::TransactionOutput.new(value: source_output.value, script: holding_script))
+    marker = BTC::AssetMarker.new
     marker.quantities = [ 1000_000_000 ]
     marker.metadata = "Chancellor bailing out banks"
     transfer.outputs << marker.output

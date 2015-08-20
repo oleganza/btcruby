@@ -2,7 +2,7 @@ require_relative 'spec_helper'
 describe BTC::TransactionBuilder do
 
   class SignerByKey
-    include TransactionBuilder::Signer
+    include BTC::TransactionBuilder::Signer
     def initialize(&block)
       @block = block
     end
@@ -12,7 +12,7 @@ describe BTC::TransactionBuilder do
   end
 
   class SignerBySignatureScript
-    include TransactionBuilder::Signer
+    include BTC::TransactionBuilder::Signer
     def initialize(&block)
       @block = block
     end
@@ -23,17 +23,17 @@ describe BTC::TransactionBuilder do
 
   describe "TransactionBuilder with no outputs" do
     before do
-      @builder = TransactionBuilder.new
+      @builder = BTC::TransactionBuilder.new
       @all_utxos = self.mock_utxos
 
       @builder.input_addresses = self.mock_addresses
-      @builder.provider = TransactionBuilder::Provider.new do |txb|
+      @builder.provider = BTC::TransactionBuilder::Provider.new do |txb|
         addrs = txb.public_addresses
         addrs.must_equal self.mock_addresses
         scripts = addrs.map{|a| a.script }.uniq
         @all_utxos.find_all{|utxo| scripts.include?(utxo.script) }
       end
-      @builder.change_address = Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
+      @builder.change_address = BTC::Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
     end
 
     it "should fill unspent_outputs using Provider" do
@@ -41,12 +41,12 @@ describe BTC::TransactionBuilder do
     end
 
     it "should have a default fee rate" do
-      @builder.fee_rate.must_equal Transaction::DEFAULT_FEE_RATE
+      @builder.fee_rate.must_equal BTC::Transaction::DEFAULT_FEE_RATE
     end
 
     it "should return a result" do
       result = @builder.build
-      result.class.must_equal TransactionBuilder::Result
+      result.class.must_equal BTC::TransactionBuilder::Result
     end
 
     it "should compose a fully-spending transaction when no outputs are given" do
@@ -64,7 +64,7 @@ describe BTC::TransactionBuilder do
     it "should have a reasonable fee" do
       result = @builder.build
       size = result.transaction.data.bytesize # size of unsigned transaction
-      result.fee.must_be :>=, (size / 1000)*Transaction::DEFAULT_FEE_RATE
+      result.fee.must_be :>=, (size / 1000)*BTC::Transaction::DEFAULT_FEE_RATE
       result.fee.must_be :<, 0.01 * BTC::COIN
     end
 
@@ -111,7 +111,7 @@ describe BTC::TransactionBuilder do
 
     it "should sign if signer provides a signature script" do
       @builder.signer = SignerBySignatureScript.new do |txin, txout|
-        Script.new << "signature" << "pubkey"
+        BTC::Script.new << "signature" << "pubkey"
       end
       result = @builder.build
       result.unsigned_input_indexes.must_equal []
@@ -126,7 +126,7 @@ describe BTC::TransactionBuilder do
     it "should include all prepended unspents AND all normal unspents" do
       @builder.prepended_unspent_outputs = [ BTC::TransactionOutput.new(
         value: 6_666_666,
-        script: Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
+        script: BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
         index: 0,
         transaction_hash: "some mock tx".hash256
       ) ]
@@ -141,18 +141,18 @@ describe BTC::TransactionBuilder do
 
   describe "TransactionBuilder with some outputs" do
     before do
-      @builder = TransactionBuilder.new
+      @builder = BTC::TransactionBuilder.new
       @all_utxos = self.mock_utxos
       @builder.input_addresses = self.mock_addresses
-      @builder.provider = TransactionBuilder::Provider.new do |txb|
+      @builder.provider = BTC::TransactionBuilder::Provider.new do |txb|
         addrs = txb.public_addresses
         addrs.must_equal self.mock_addresses
         scripts = addrs.map{|a| a.script }.uniq
         @all_utxos.find_all{|utxo| scripts.include?(utxo.script) }
       end
-      @builder.change_address = Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
-      @builder.outputs = [ TransactionOutput.new(value: 1000_500,
-                            script: Address.parse("1TipsuQ7CSqfQsjA9KU5jarSB1AnrVLLo").script) ]
+      @builder.change_address = BTC::Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
+      @builder.outputs = [ BTC::TransactionOutput.new(value: 1000_500,
+                            script: BTC::Address.parse("1TipsuQ7CSqfQsjA9KU5jarSB1AnrVLLo").script) ]
     end
 
     it "should fill unspent_outputs using provider" do
@@ -160,7 +160,7 @@ describe BTC::TransactionBuilder do
     end
 
     it "should have a default fee rate" do
-      @builder.fee_rate.must_equal Transaction::DEFAULT_FEE_RATE
+      @builder.fee_rate.must_equal BTC::Transaction::DEFAULT_FEE_RATE
     end
 
     it "should compose a minimal transaction to pay necessary amount" do
@@ -186,7 +186,7 @@ describe BTC::TransactionBuilder do
     it "should have a reasonable fee" do
       result = @builder.build
       size = result.transaction.data.bytesize # size of unsigned transaction
-      result.fee.must_be :>=, (size / 1000)*Transaction::DEFAULT_FEE_RATE
+      result.fee.must_be :>=, (size / 1000)*BTC::Transaction::DEFAULT_FEE_RATE
       result.fee.must_be :<, 0.01 * BTC::COIN
     end
 
@@ -219,7 +219,7 @@ describe BTC::TransactionBuilder do
     it "should include all prepended unspents and none of normal unspents if amount is covered" do
       @builder.prepended_unspent_outputs = [ BTC::TransactionOutput.new(
         value: 6_666_666,
-        script: Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
+        script: BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
         index: 0,
         transaction_hash: "some mock tx".hash256
       ) ]
@@ -231,7 +231,7 @@ describe BTC::TransactionBuilder do
     it "should include all prepended unspents and just enough of normal unspents" do
       @builder.prepended_unspent_outputs = [ BTC::TransactionOutput.new(
         value: @builder.outputs.first.value - (self.mock_utxos.first.value / 2),
-        script: Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
+        script: BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX").script,
         index: 0,
         transaction_hash: "some mock tx".hash256
       ) ]
@@ -243,54 +243,54 @@ describe BTC::TransactionBuilder do
 
   describe "TransactionBuilder edge cases" do
     before do
-      @builder = TransactionBuilder.new
+      @builder = BTC::TransactionBuilder.new
       @all_utxos = self.mock_utxos
       @builder.input_addresses = self.mock_addresses
-      @builder.provider = TransactionBuilder::Provider.new do |txb|
+      @builder.provider = BTC::TransactionBuilder::Provider.new do |txb|
         addrs = txb.public_addresses
         addrs.must_equal self.mock_addresses
         scripts = addrs.map{|a| a.script }.uniq
         @all_utxos.find_all{|utxo| scripts.include?(utxo.script) }
       end
-      @builder.change_address = Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
+      @builder.change_address = BTC::Address.parse("1CBtcGivXmHQ8ZqdPgeMfcpQNJrqTrSAcG")
     end
 
     it "should detect missing change address" do
       @builder.change_address = nil
       lambda do
         result = @builder.build
-      end.must_raise TransactionBuilder::MissingChangeAddressError
+      end.must_raise BTC::TransactionBuilder::MissingChangeAddressError
     end
 
     it "should detect missing unspents" do
       @builder.provider = nil
       lambda do
         result = @builder.build
-      end.must_raise TransactionBuilder::MissingUnspentOutputsError
+      end.must_raise BTC::TransactionBuilder::MissingUnspentOutputsError
     end
 
     it "should detect missing unspents" do
       @builder.unspent_outputs = [ ]
       lambda do
         result = @builder.build
-      end.must_raise TransactionBuilder::MissingUnspentOutputsError
+      end.must_raise BTC::TransactionBuilder::MissingUnspentOutputsError
     end
 
     it "should detect not enough unspents" do
-      @builder.outputs = [ TransactionOutput.new(value: 100*COIN, script: @builder.change_address.script) ]
+      @builder.outputs = [ BTC::TransactionOutput.new(value: 100*BTC::COIN, script: @builder.change_address.script) ]
       lambda do
         result = @builder.build
-      end.must_raise TransactionBuilder::InsufficientFundsError
+      end.must_raise BTC::TransactionBuilder::InsufficientFundsError
     end
 
     it "should detect not enough unspents because of change constraints" do
       @builder.dust_change = 0 # no coins are allowed to be lost
       @builder.minimum_change = 10000
       @builder.unspent_outputs = mock_utxos[0, 1]
-      @builder.outputs = [ TransactionOutput.new(value: 1000_00 - @builder.fee_rate - 10, script: @builder.change_address.script) ]
+      @builder.outputs = [ BTC::TransactionOutput.new(value: 1000_00 - @builder.fee_rate - 10, script: @builder.change_address.script) ]
       lambda do
         result = @builder.build
-      end.must_raise TransactionBuilder::InsufficientFundsError
+      end.must_raise BTC::TransactionBuilder::InsufficientFundsError
     end
 
     it "should forgo change if it's below dust level" do
@@ -299,7 +299,7 @@ describe BTC::TransactionBuilder do
       @builder.unspent_outputs = mock_utxos[0, 1]
       assumed_fee = 2590 #@builder.fee_rate # we assume we'll have sub-1K transaction
       amount = 1000_00 - assumed_fee - @builder.dust_change
-      @builder.outputs = [ TransactionOutput.new(value: amount, script: @builder.change_address.script) ]
+      @builder.outputs = [ BTC::TransactionOutput.new(value: amount, script: @builder.change_address.script) ]
 
       result = @builder.build
       result.fee.must_equal assumed_fee
@@ -312,8 +312,8 @@ describe BTC::TransactionBuilder do
 
   def mock_keys
     @mock_keys ||= [
-      Key.new(private_key: "Wallet1".sha256),
-      Key.new(private_key: "Wallet2".sha256)
+      BTC::Key.new(private_key: "Wallet1".sha256),
+      BTC::Key.new(private_key: "Wallet2".sha256)
     ]
   end
 
@@ -328,7 +328,7 @@ describe BTC::TransactionBuilder do
   def mock_utxos
     scripts = mock_addresses.map{|a| a.script }
     (0...32).map do |i|
-      TransactionOutput.new(value:  100_000,
+      BTC::TransactionOutput.new(value:  100_000,
                            script: scripts[i % scripts.size],
                  transaction_hash: ((16+i).to_s(16)*32).from_hex,
                             index: i)

@@ -14,6 +14,7 @@ module BTC
 
   # TransactionBuilder composes and optionally sings a transaction.
   class TransactionBuilder
+    include Opcodes
 
     # Network to validate provided addresses against.
     # Default value is `Network.default`.

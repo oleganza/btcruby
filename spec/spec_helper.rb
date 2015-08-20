@@ -5,22 +5,22 @@ require_relative '../lib/btcruby'
 require_relative '../lib/btcruby/extensions'
 
 # So every test can access classes directly without prefixing them with BTC::
-include BTC
+#include BTC
 
 # Script helper used by transaction_spec and script_interpreter_spec
 FLAGS_MAP = {
-    "" =>                           ScriptFlags::SCRIPT_VERIFY_NONE,
-    "NONE" =>                       ScriptFlags::SCRIPT_VERIFY_NONE,
-    "P2SH" =>                       ScriptFlags::SCRIPT_VERIFY_P2SH,
-    "STRICTENC" =>                  ScriptFlags::SCRIPT_VERIFY_STRICTENC,
-    "DERSIG" =>                     ScriptFlags::SCRIPT_VERIFY_DERSIG,
-    "LOW_S" =>                      ScriptFlags::SCRIPT_VERIFY_LOW_S,
-    "NULLDUMMY" =>                  ScriptFlags::SCRIPT_VERIFY_NULLDUMMY,
-    "SIGPUSHONLY" =>                ScriptFlags::SCRIPT_VERIFY_SIGPUSHONLY,
-    "MINIMALDATA" =>                ScriptFlags::SCRIPT_VERIFY_MINIMALDATA,
-    "DISCOURAGE_UPGRADABLE_NOPS" => ScriptFlags::SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
-    "CLEANSTACK" =>                 ScriptFlags::SCRIPT_VERIFY_CLEANSTACK,
-    "CHECKLOCKTIMEVERIFY" =>        ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
+    "" =>                           BTC::ScriptFlags::SCRIPT_VERIFY_NONE,
+    "NONE" =>                       BTC::ScriptFlags::SCRIPT_VERIFY_NONE,
+    "P2SH" =>                       BTC::ScriptFlags::SCRIPT_VERIFY_P2SH,
+    "STRICTENC" =>                  BTC::ScriptFlags::SCRIPT_VERIFY_STRICTENC,
+    "DERSIG" =>                     BTC::ScriptFlags::SCRIPT_VERIFY_DERSIG,
+    "LOW_S" =>                      BTC::ScriptFlags::SCRIPT_VERIFY_LOW_S,
+    "NULLDUMMY" =>                  BTC::ScriptFlags::SCRIPT_VERIFY_NULLDUMMY,
+    "SIGPUSHONLY" =>                BTC::ScriptFlags::SCRIPT_VERIFY_SIGPUSHONLY,
+    "MINIMALDATA" =>                BTC::ScriptFlags::SCRIPT_VERIFY_MINIMALDATA,
+    "DISCOURAGE_UPGRADABLE_NOPS" => BTC::ScriptFlags::SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS,
+    "CLEANSTACK" =>                 BTC::ScriptFlags::SCRIPT_VERIFY_CLEANSTACK,
+    "CHECKLOCKTIMEVERIFY" =>        BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY,
 }
 
 def parse_script(json_script, expected_result = true)
@@ -33,7 +33,7 @@ def parse_script(json_script, expected_result = true)
     oldsize = json_script.size
     json_script.gsub!(/0x([0-9a-fA-F]+)\s+0x/, "0x\\1")
   end
-  json_script.split(" ").inject(Script.new) do |parsed_script, x|
+  json_script.split(" ").inject(BTC::Script.new) do |parsed_script, x|
     if x.size == 0
       # Empty string, ignore.
       parsed_script
@@ -41,25 +41,27 @@ def parse_script(json_script, expected_result = true)
       # Number
       n = x.to_i
       if (n == -1) || (n >= 1 and n <= 16)
-        parsed_script << Opcode.opcode_for_small_integer(n)
+        parsed_script << BTC::Opcode.opcode_for_small_integer(n)
       else
-        parsed_script << ScriptNumber.new(integer: n).data
+        parsed_script << BTC::ScriptNumber.new(integer: n).data
       end
     elsif x[0,2] == "0x"
       # Raw hex data, inserted NOT pushed onto stack:
       data = BTC.from_hex(x[2..-1])
-      Script.new(data: parsed_script.data + data)
+      BTC::Script.new(data: parsed_script.data + data)
     elsif x =~ /^'.*'$/
       # Single-quoted string, pushed as data.
       parsed_script << x[1..-2]
     else
       # opcode, e.g. OP_ADD or ADD:
-      opcode = Opcode.opcode_for_name("OP_" + x)
-      opcode = Opcode.opcode_for_name(x) if opcode == OP_INVALIDOPCODE
+      opcode = BTC::Opcode.opcode_for_name("OP_" + x)
+      opcode = BTC::Opcode.opcode_for_name(x) if opcode == BTC::OP_INVALIDOPCODE
       parsed_script << opcode
     end
   end
 rescue => e
+   # puts e.backtrace.join("\n")
+   # raise "!!!!"
   if expected_result
     # puts "json_script = #{orig_string.inspect}"
     # puts "json_script = #{json_script.inspect}"
@@ -76,14 +78,14 @@ def parse_flags(string)
 end
 
 def build_crediting_transaction(scriptPubKey)
-  txCredit = Transaction.new;
-  txCredit.version = 1;
-  txCredit.lock_time = 0;
-  txCredit.add_input(TransactionInput.new(
+  txCredit = BTC::Transaction.new
+  txCredit.version = 1
+  txCredit.lock_time = 0
+  txCredit.add_input(BTC::TransactionInput.new(
     previous_hash: nil,
-    coinbase_data: (Script.new << ScriptNumber.new(integer:0) << ScriptNumber.new(integer:0)).data
+    coinbase_data: (BTC::Script.new << BTC::ScriptNumber.new(integer:0) << BTC::ScriptNumber.new(integer:0)).data
   ))
-  txCredit.add_output(TransactionOutput.new(
+  txCredit.add_output(BTC::TransactionOutput.new(
     script: scriptPubKey,
     value: 0
   ))
@@ -91,16 +93,16 @@ def build_crediting_transaction(scriptPubKey)
 end
 
 def build_spending_transaction(scriptSig, txCredit)
-  txSpend = Transaction.new
-  txSpend.version = 1;
-  txSpend.lock_time = 0;
-  txSpend.add_input(TransactionInput.new(
+  txSpend = BTC::Transaction.new
+  txSpend.version = 1
+  txSpend.lock_time = 0
+  txSpend.add_input(BTC::TransactionInput.new(
     previous_hash: txCredit.transaction_hash,
     previous_index: 0,
     signature_script: scriptSig
   ))
-  txSpend.add_output(TransactionOutput.new(
-    script: Script.new,
+  txSpend.add_output(BTC::TransactionOutput.new(
+    script: BTC::Script.new,
     value: 0
   ))
   txSpend

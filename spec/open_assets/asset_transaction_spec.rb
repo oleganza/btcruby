@@ -3,21 +3,21 @@ require_relative '../spec_helper'
 describe "Serialization" do
 
   def build_asset_transaction(inputs: [], issues: [], transfers: [])
-    tx = Transaction.new
-    script = PublicKeyAddress.new(hash: "some address".hash160).script
+    tx = BTC::Transaction.new
+    script = BTC::PublicKeyAddress.new(hash: "some address".hash160).script
     inputs.each do
-      tx.add_input(TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
+      tx.add_input(BTC::TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
     end
     issues.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
     qtys = issues.map{|tuple| tuple.first} + transfers.map{|tuple| tuple.first}
-    tx.add_output(AssetMarker.new(quantities: qtys).output)
+    tx.add_output(BTC::AssetMarker.new(quantities: qtys).output)
     transfers.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
 
-    atx = AssetTransaction.new(transaction: tx)
+    atx = BTC::AssetTransaction.new(transaction: tx)
     atx.inputs.each_with_index do |ain, i|
       amount, name = inputs[i]
       if amount
@@ -35,7 +35,7 @@ describe "Serialization" do
   end
   
   def asset_id(name)
-    name ? AssetID.new(hash: name.hash160) : nil
+    name ? BTC::AssetID.new(hash: name.hash160) : nil
   end
     
   before do
@@ -45,7 +45,7 @@ describe "Serialization" do
       transfers: [ [40, "A"], [60, "A"], [44, "B"] ]
     )
     data = @atx.data
-    @atx2 = AssetTransaction.new(data: data)
+    @atx2 = BTC::AssetTransaction.new(data: data)
   end
   
   it "should restore all outputs" do 

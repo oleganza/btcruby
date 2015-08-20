@@ -1,6 +1,7 @@
 module BTC
   # ScriptChunk represents either an opcode or a pushdata command.
   class ScriptChunk
+    include Opcodes
     # Raw data for this chunk.
     # 1 byte for regular opcode, 1 or more bytes for pushdata command.
     # We do not call it 'data' to avoid confusion with `pushdata` (see below).

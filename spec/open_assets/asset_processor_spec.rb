@@ -3,21 +3,21 @@ require_relative '../spec_helper'
 describe "Verifying transfer outputs" do
 
   def build_asset_transaction(inputs: [], issues: [], transfers: [])
-    tx = Transaction.new
-    script = PublicKeyAddress.new(hash: "some address".hash160).script
+    tx = BTC::Transaction.new
+    script = BTC::PublicKeyAddress.new(hash: "some address".hash160).script
     inputs.each do
-      tx.add_input(TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
+      tx.add_input(BTC::TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
     end
     issues.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
     qtys = issues.map{|tuple| tuple.first} + transfers.map{|tuple| tuple.first}
-    tx.add_output(AssetMarker.new(quantities: qtys).output)
+    tx.add_output(BTC::AssetMarker.new(quantities: qtys).output)
     transfers.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
 
-    atx = AssetTransaction.new(transaction: tx)
+    atx = BTC::AssetTransaction.new(transaction: tx)
     atx.inputs.each_with_index do |ain, i|
       amount, name = inputs[i]
       if amount
@@ -35,7 +35,7 @@ describe "Verifying transfer outputs" do
   end
 
   def asset_id(name)
-    name ? AssetID.new(hash: name.hash160) : nil
+    name ? BTC::AssetID.new(hash: name.hash160) : nil
   end
 
   def asset_transfer_must_be_verified(inputs: [], issues: [], transfers: [])
@@ -67,11 +67,11 @@ describe "Verifying transfer outputs" do
   end
 
   before do
-    @processor = AssetProcessor.new(source: :NOT_USED)
+    @processor = BTC::AssetProcessor.new(source: :NOT_USED)
   end
 
   it "should support transferring asset with overlapping and underlapping" do
-    Diagnostics.current.trace do
+    BTC::Diagnostics.current.trace do
       asset_transfer_must_be_verified(
         inputs:    [ [100, "A"], [50, "A"], [10, "A"], [30, "B"], [14, "B"] ],
         issues:    [ ],
@@ -118,7 +118,7 @@ end
 describe "Verifying a chain of transactions" do
 
   class InMemoryTxSource
-    include AssetProcessorSource
+    include BTC::AssetProcessorSource
     def initialize
       @txs = {}
     end
@@ -134,21 +134,21 @@ describe "Verifying a chain of transactions" do
   end
 
   def build_asset_transaction(inputs: [], issues: [], transfers: [])
-    tx = Transaction.new
-    script = PublicKeyAddress.new(hash: "some address".hash160).script
+    tx = BTC::Transaction.new
+    script = BTC::PublicKeyAddress.new(hash: "some address".hash160).script
     inputs.each do
-      tx.add_input(TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
+      tx.add_input(BTC::TransactionInput.new(previous_hash: "".sha256, previous_index: 0))
     end
     issues.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
     qtys = issues.map{|tuple| tuple.first} + transfers.map{|tuple| tuple.first}
-    tx.add_output(AssetMarker.new(quantities: qtys).output)
+    tx.add_output(BTC::AssetMarker.new(quantities: qtys).output)
     transfers.each do |tuple|
-      tx.add_output(TransactionOutput.new(value: 1, script: script))
+      tx.add_output(BTC::TransactionOutput.new(value: 1, script: script))
     end
 
-    atx = AssetTransaction.new(transaction: tx)
+    atx = BTC::AssetTransaction.new(transaction: tx)
     atx.inputs.each_with_index do |ain, i|
       amount, name = inputs[i]
       if amount
@@ -166,14 +166,14 @@ describe "Verifying a chain of transactions" do
   end
 
   def asset_id(name)
-    name ? AssetID.new(hash: name.hash160) : nil
+    name ? BTC::AssetID.new(hash: name.hash160) : nil
   end
 
   def make_transaction(inputs: [], outputs: [])
-    tx = Transaction.new
+    tx = BTC::Transaction.new
     inputs.each do |inp|
       txout = inp
-      tx.add_input(TransactionInput.new(previous_hash: txout.transaction_hash,
+      tx.add_input(BTC::TransactionInput.new(previous_hash: txout.transaction_hash,
                                         previous_index: txout.index))
     end
     payment_outputs = []
@@ -192,25 +192,25 @@ describe "Verifying a chain of transactions" do
       end
     end
     issue_outputs.each do |out|
-      tx.add_output(TransactionOutput.new(value: out[:btc], script: Address.parse(out[:address]).script))
+      tx.add_output(BTC::TransactionOutput.new(value: out[:btc], script: BTC::Address.parse(out[:address]).script))
     end
     if qtys.size > 0
-      tx.add_output(AssetMarker.new(quantities: qtys).output)
+      tx.add_output(BTC::AssetMarker.new(quantities: qtys).output)
     end
     (transfer_outputs + payment_outputs).each do |out|
-      tx.add_output(TransactionOutput.new(value: out[:btc], script: Address.parse(out[:address]).script))
+      tx.add_output(BTC::TransactionOutput.new(value: out[:btc], script: BTC::Address.parse(out[:address]).script))
     end
     tx
   end
 
   before do
     @source = InMemoryTxSource.new
-    @processor = AssetProcessor.new(source: @source)
+    @processor = BTC::AssetProcessor.new(source: @source)
   end
 
   it "should verify a simple issuance chain (parent + child transaction)" do
-    issue_address = Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
-    asset_id = AssetID.new(script: issue_address.script)
+    issue_address = BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
+    asset_id = BTC::AssetID.new(script: issue_address.script)
     tx1 = make_transaction(outputs: [
       {btc: 10_000, address: "3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX"}
     ])
@@ -224,9 +224,9 @@ describe "Verifying a chain of transactions" do
       ]
     )
     @source.add_transaction(tx1)
-    atx = AssetTransaction.new(transaction: tx2)
+    atx = BTC::AssetTransaction.new(transaction: tx2)
 
-    Diagnostics.current.trace do
+    BTC::Diagnostics.current.trace do
       @processor.verify_asset_transaction(atx).must_equal(true)
       atx.outputs.map {|aout|
         [aout.verified?, aout.value, aout.asset_id]
@@ -240,8 +240,8 @@ describe "Verifying a chain of transactions" do
 
 
   it "should verify a transfer chain" do
-    issue_address = Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
-    asset_id = AssetID.new(script: issue_address.script)
+    issue_address = BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
+    asset_id = BTC::AssetID.new(script: issue_address.script)
     tx1 = make_transaction(outputs: [
       {btc: 10_000, address: "3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX"}
     ])
@@ -277,9 +277,9 @@ describe "Verifying a chain of transactions" do
     @source.add_transaction(tx1)
     @source.add_transaction(tx2)
     @source.add_transaction(tx3)
-    atx = AssetTransaction.new(transaction: tx4)
+    atx = BTC::AssetTransaction.new(transaction: tx4)
 
-    Diagnostics.current.trace do
+    BTC::Diagnostics.current.trace do
       result = @processor.verify_asset_transaction(atx)
       result.must_equal(true)
       atx.outputs.map {|aout|
@@ -293,8 +293,8 @@ describe "Verifying a chain of transactions" do
   end
 
   it "should fail to verify an incorrect transfer chain" do
-    issue_address = Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
-    asset_id = AssetID.new(script: issue_address.script)
+    issue_address = BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
+    asset_id = BTC::AssetID.new(script: issue_address.script)
     tx1 = make_transaction(outputs: [
       {btc: 10_000, address: "3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX"}
     ])
@@ -331,9 +331,9 @@ describe "Verifying a chain of transactions" do
     @source.add_transaction(tx1)
     @source.add_transaction(tx2)
     @source.add_transaction(tx3)
-    atx = AssetTransaction.new(transaction: tx4)
+    atx = BTC::AssetTransaction.new(transaction: tx4)
 
-    #Diagnostics.current.trace do
+    #BTC::Diagnostics.current.trace do
       result = @processor.verify_asset_transaction(atx)
       result.must_equal(false)
       atx.outputs.map {|aout|
@@ -347,10 +347,10 @@ describe "Verifying a chain of transactions" do
   end
 
   it "should verify a transfer chain with multiple assets" do
-    issue_address1 = Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
-    issue_address2 = Address.parse("3GkKDgJAWJnizg6Tz7DBM8uDtdHtrUkQ2X")
-    asset_id1 = AssetID.new(script: issue_address1.script)
-    asset_id2 = AssetID.new(script: issue_address2.script)
+    issue_address1 = BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
+    issue_address2 = BTC::Address.parse("3GkKDgJAWJnizg6Tz7DBM8uDtdHtrUkQ2X")
+    asset_id1 = BTC::AssetID.new(script: issue_address1.script)
+    asset_id2 = BTC::AssetID.new(script: issue_address2.script)
 
     tx1 = make_transaction(outputs: [
       {btc: 10_000, address: issue_address1}
@@ -472,9 +472,9 @@ describe "Verifying a chain of transactions" do
     @source.add_transaction(tx7)
     @source.add_transaction(tx8)
     @source.add_transaction(tx9)
-    atx = AssetTransaction.new(transaction: tx_final)
+    atx = BTC::AssetTransaction.new(transaction: tx_final)
 
-    Diagnostics.current.trace do
+    BTC::Diagnostics.current.trace do
       result = @processor.verify_asset_transaction(atx)
       result.must_equal(true)
 
@@ -496,10 +496,10 @@ describe "Verifying a chain of transactions" do
   end
 
   it "should fail to verify a mix of assets in one output" do
-    issue_address1 = Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
-    issue_address2 = Address.parse("3GkKDgJAWJnizg6Tz7DBM8uDtdHtrUkQ2X")
-    asset_id1 = AssetID.new(script: issue_address1.script)
-    asset_id2 = AssetID.new(script: issue_address2.script)
+    issue_address1 = BTC::Address.parse("3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX")
+    issue_address2 = BTC::Address.parse("3GkKDgJAWJnizg6Tz7DBM8uDtdHtrUkQ2X")
+    asset_id1 = BTC::AssetID.new(script: issue_address1.script)
+    asset_id2 = BTC::AssetID.new(script: issue_address2.script)
 
     tx1 = make_transaction(outputs: [
       {btc: 10_000, address: issue_address1}
@@ -549,7 +549,7 @@ describe "Verifying a chain of transactions" do
     @source.add_transaction(tx2)
     @source.add_transaction(tx3)
     @source.add_transaction(tx4)
-    atx = AssetTransaction.new(transaction: tx5)
+    atx = BTC::AssetTransaction.new(transaction: tx5)
 
     #Diagnostics.current.trace do
       result = @processor.verify_asset_transaction(atx)

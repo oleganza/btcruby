@@ -1,6 +1,7 @@
 module BTC
   class Script
-
+    include Opcodes
+    
     # Serialized binary form of the script (payload)
     attr_reader :data
 

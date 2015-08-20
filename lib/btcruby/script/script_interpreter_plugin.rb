@@ -10,6 +10,7 @@ module BTC
   module ScriptInterpreterPlugin
     include ScriptFlags
     include ScriptErrors
+    include Opcodes
 
     # Returns additional flags to be available to #flag? checks during script execution.
     # This way one plugin can affect evaluation of another.

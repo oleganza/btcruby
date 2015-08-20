@@ -201,5 +201,8 @@ module BTC
   
   # Make all opcodes available as BTC::OP_...
   include Opcodes
+  module Opcode
+    include Opcodes
+  end
 end
 

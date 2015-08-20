@@ -2,34 +2,34 @@ require_relative 'spec_helper'
 describe BTC::Base58 do
 
   def check_invalid_base58(base58_string, expected_class = BTC::FormatError)
-    lambda { Base58.data_from_base58(base58_string) }.must_raise expected_class
+    lambda { BTC::Base58.data_from_base58(base58_string) }.must_raise expected_class
   end
 
   def check_invalid_base58check(base58check_string, expected_class = BTC::FormatError)
-    lambda { Base58.data_from_base58check(base58check_string) }.must_raise expected_class
+    lambda { BTC::Base58.data_from_base58check(base58check_string) }.must_raise expected_class
   end
 
   def check_valid_base58(hex_string, base58_string)
     # Convert to Base58
-    Base58.base58_from_data(BTC.from_hex(hex_string)).must_equal(base58_string)
+    BTC::Base58.base58_from_data(BTC.from_hex(hex_string)).must_equal(base58_string)
 
     # Convert from Base58
-    BTC.to_hex(Base58.data_from_base58(base58_string)).must_equal(hex_string)
+    BTC.to_hex(BTC::Base58.data_from_base58(base58_string)).must_equal(hex_string)
   end
 
   def check_valid_base58check(hex, string)
     # Convert to Base58Check
-    Base58.base58check_from_data(BTC.from_hex(hex)).must_equal(string)
+    BTC::Base58.base58check_from_data(BTC.from_hex(hex)).must_equal(string)
 
     # Convert from Base58Check
-    BTC.to_hex(Base58.data_from_base58check(string)).must_equal(hex)
+    BTC.to_hex(BTC::Base58.data_from_base58check(string)).must_equal(hex)
   end
 
   describe "Base58" do
     it "should handle valid input" do
 
-      lambda { Base58.data_from_base58(nil) }.must_raise ArgumentError
-      lambda { Base58.base58_from_data(nil) }.must_raise ArgumentError
+      lambda { BTC::Base58.data_from_base58(nil) }.must_raise ArgumentError
+      lambda { BTC::Base58.base58_from_data(nil) }.must_raise ArgumentError
       check_valid_base58("", "")
       check_valid_base58("13", "L")
       check_valid_base58("2e", "o")

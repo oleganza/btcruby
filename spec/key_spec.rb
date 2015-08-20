@@ -128,17 +128,17 @@ describe BTC::Key do
     2560.times do |i|
       hash = BTC.sha256("tx#{i}")
       sig = key.ecdsa_signature(hash) + "\x01".b
-      canonical = Key.validate_script_signature(sig)
+      canonical = BTC::Key.validate_script_signature(sig)
       if !canonical
-        puts Diagnostics.current.last_message
+        puts BTC::Diagnostics.current.last_message
       end
       canonical.must_equal true
     end
 
     sig = "3045022100e81a33ac22d0ef25d359a5353977f0f953608b2733141239ec02363237ab6781022045c71237e95b56079e9fa88591060e4c1a4bb02c0cad1ebeb092749d4aa9754701".from_hex
-    canonical = Key.validate_script_signature(sig)
+    canonical = BTC::Key.validate_script_signature(sig)
     if !canonical
-      puts Diagnostics.current.last_message
+      puts BTC::Diagnostics.current.last_message
     end
     canonical.must_equal true
   end
@@ -150,7 +150,7 @@ describe BTC::Key do
     # 2560.times do |i|
     #   hash = BTC.sha256("tx#{i}")
     #   sig = key.ecdsa_signature(hash, normalized: false) + "\x01".b
-    #   if !Key.validate_script_signature(sig)
+    #   if !BTC::Key.validate_script_signature(sig)
     #     puts sig[0, sig.size - 1].to_hex
     #   end
     # end
@@ -181,23 +181,23 @@ describe BTC::Key do
       3045022062d08bff9580238c8cd62d9d64e9c1d518932886651f46a445bff773993500f00221008029263cc9ec64589bbbe140995096c257a1fbacf5f9f5ee69a69b96c626cc7a
     ].each do |hex_sig|
       sig = hex_sig.from_hex
-      canonical = Key.validate_script_signature(sig + "\x01".b)
+      canonical = BTC::Key.validate_script_signature(sig + "\x01".b)
       canonical.must_equal false
-      sig2 = Key.normalized_signature(sig)
+      sig2 = BTC::Key.normalized_signature(sig)
       sig2.wont_equal nil
       sig2.wont_equal sig
-      canonical = Key.validate_script_signature(sig2 + "\x01".b)
+      canonical = BTC::Key.validate_script_signature(sig2 + "\x01".b)
       if !canonical
-        puts Diagnostics.current.last_message
+        puts BTC::Diagnostics.current.last_message
       end
       canonical.must_equal true
 
       # Non-canonical signature must be normalized
-      sig3 = Key.validate_and_normalize_script_signature(sig + "\x01".b)
+      sig3 = BTC::Key.validate_and_normalize_script_signature(sig + "\x01".b)
       sig3.must_equal sig2 + "\x01".b
 
       # Canonical signature should stay the same
-      sig4 = Key.validate_and_normalize_script_signature(sig2 + "\x01".b)
+      sig4 = BTC::Key.validate_and_normalize_script_signature(sig2 + "\x01".b)
       sig4.must_equal sig2 + "\x01".b
     end
   end

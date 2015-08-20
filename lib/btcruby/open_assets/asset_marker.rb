@@ -1,5 +1,6 @@
 module BTC
   class AssetMarker
+    include Opcodes
     
     MAGIC = "\x4f\x41".freeze
     VERSION1 = "\x01\x00".freeze

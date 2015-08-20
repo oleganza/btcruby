@@ -12,6 +12,8 @@ module BTC
   # returning a bool indicating valid or not.  There are no loops.
   class ScriptInterpreter
     include ScriptFlags
+    include ScriptErrors
+    include Opcodes
 
     # Flags specified for this interpreter, not including flags added by plugins.
     attr_accessor :flags

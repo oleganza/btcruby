@@ -9,11 +9,11 @@ describe BTC::ScriptInterpreter do
 
     def verify_script(sig_script, output_script, flags, expected_result, record)
       tx = build_spending_transaction(sig_script, build_crediting_transaction(output_script));
-      checker = TransactionSignatureChecker.new(transaction: tx, input_index: 0)
+      checker = BTC::TransactionSignatureChecker.new(transaction: tx, input_index: 0)
       plugins = []
-      plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
-      plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
-      interpreter = ScriptInterpreter.new(
+      plugins << BTC::P2SHPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+      plugins << BTC::CLTVPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+      interpreter = BTC::ScriptInterpreter.new(
         flags: flags,
         plugins: plugins,
         signature_checker: checker,

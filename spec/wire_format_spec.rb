@@ -299,16 +299,16 @@ describe BTC::WireFormat do
   it "should encode/decode varint-prefixed arrays" do
 
     txs = [
-      Transaction.new,
-      Transaction.new(inputs:[TransactionInput.new]),
-      Transaction.new(outputs:[TransactionOutput.new])
+      BTC::Transaction.new,
+      BTC::Transaction.new(inputs:[BTC::TransactionInput.new]),
+      BTC::Transaction.new(outputs:[BTC::TransactionOutput.new])
     ]
-    data = WireFormat.encode_array(txs) {|t|t.data}
+    data = BTC::WireFormat.encode_array(txs) {|t|t.data}
     data.bytes[0].must_equal txs.size
     data.must_equal txs.inject("\x03".b){|d,t| d+t.data}
 
     stream = StringIO.new(data)
-    txs2 = WireFormat.read_array(stream: stream){ Transaction.new(stream: stream) }
+    txs2 = BTC::WireFormat.read_array(stream: stream){ BTC::Transaction.new(stream: stream) }
     txs2[0].data.must_equal txs[0].data
     txs2[1].data.must_equal txs[1].data
     txs2[2].data.must_equal txs[2].data

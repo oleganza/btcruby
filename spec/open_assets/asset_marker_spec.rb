@@ -18,22 +18,22 @@ describe BTC::AssetMarker do
     #                                - Outputs after output 3 (if any) have an asset quantity of 0.
     # 0x05                           The metadata is 5 bytes long.
     # 0x48 0x65 0x6c 0x6c 0x6f       Some arbitrary metadata.
-    output = TransactionOutput.new(value: 0, script: Script.new << OP_RETURN << "4f41010003ac0200e58e260548656c6c6f".from_hex)
-    marker = AssetMarker.new(output: output)
+    output = BTC::TransactionOutput.new(value: 0, script: BTC::Script.new << BTC::OP_RETURN << "4f41010003ac0200e58e260548656c6c6f".from_hex)
+    marker = BTC::AssetMarker.new(output: output)
     marker.quantities.must_equal [300, 0, 624_485]
     marker.metadata.must_equal "Hello"
 
-    marker = AssetMarker.new(script: output.script)
+    marker = BTC::AssetMarker.new(script: output.script)
     marker.quantities.must_equal [300, 0, 624_485]
     marker.metadata.must_equal "Hello"
 
-    marker = AssetMarker.new(data: output.script.op_return_data)
+    marker = BTC::AssetMarker.new(data: output.script.op_return_data)
     marker.quantities.must_equal [300, 0, 624_485]
     marker.metadata.must_equal "Hello"
   end
 
   it "should encode marker output" do
-    marker = AssetMarker.new
+    marker = BTC::AssetMarker.new
     marker.data.must_equal "4f4101000000".from_hex
     marker.metadata = "Hello"
     marker.data.must_equal "4f410100000548656c6c6f".from_hex

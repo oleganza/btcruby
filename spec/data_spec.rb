@@ -12,9 +12,9 @@ describe BTC::Data do
   end
 
   it "should not decode invalid hex" do
-    lambda { BTC.from_hex("f") }.must_raise FormatError
-    lambda { BTC.from_hex("dxadBEEF") }.must_raise FormatError
-    lambda { BTC.from_hex("-") }.must_raise FormatError
+    lambda { BTC.from_hex("f") }.must_raise BTC::FormatError
+    lambda { BTC.from_hex("dxadBEEF") }.must_raise BTC::FormatError
+    lambda { BTC.from_hex("-") }.must_raise BTC::FormatError
   end
 
   it "should encode valid hex" do
