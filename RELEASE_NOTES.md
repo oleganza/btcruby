@@ -2,6 +2,13 @@
 BTCRuby Release Notes
 =====================
 
+1.1.5 (August 20, 2015)
+-----------------------
+
+* Fixed namespace issues with `BTC::Opcodes`.
+* All tests are running with explicit namespaces.
+
+
 1.1.4 (August 18, 2015)
 -----------------------
 
