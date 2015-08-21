@@ -48,6 +48,7 @@ module BTC
   include ScriptErrors
   
   class ScriptError
+    include ScriptErrors
     attr_reader :code
     attr_reader :message
     attr_reader :description
