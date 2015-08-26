@@ -2,6 +2,13 @@
 BTCRuby Release Notes
 =====================
 
+1.1.6 (August 26, 2015)
+-----------------------
+
+* Re-defined Issuance ID to not include amount. Now it is defined purely by an outpoint.
+* Fixed namespace issue with `BTC::ScriptError`.
+
+
 1.1.5 (August 20, 2015)
 -----------------------
 
