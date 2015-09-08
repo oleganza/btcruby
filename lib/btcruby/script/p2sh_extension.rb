@@ -1,15 +1,15 @@
 module BTC
   # Performs Pay-to-Script-Hash (BIP16) evaluation
-  class P2SHPlugin
-    include ScriptInterpreterPlugin
+  class P2SHExtension
+    include ScriptInterpreterExtension
 
     # Returns additional flags to be available to #flag? checks during script execution.
-    # This way one plugin can affect evaluation of another.
+    # This way one extension can affect evaluation of another.
     def extra_flags
       SCRIPT_VERIFY_P2SH
     end
 
-    # Every plugin gets this callback. If plugin return `false`, execution is stopped and interpreter returns `false`.
+    # Every extension gets this callback. If extension return `false`, execution is stopped and interpreter returns `false`.
     # Default value is `true`.
     def did_execute_signature_script(interpreter: nil, signature_script: nil)
       @signature_script = signature_script

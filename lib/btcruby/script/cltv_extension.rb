@@ -1,7 +1,7 @@
 module BTC
   # Performs CHECKLOCKTIMEVERIFY (BIP65) evaluation
-  class CLTVPlugin
-    include ScriptInterpreterPlugin
+  class CLTVExtension
+    include ScriptInterpreterExtension
 
     # Default `locktime_max_size` is 5.
     # Default `lock_time_checker` equals current interpreter's signature checker.

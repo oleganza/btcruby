@@ -15,9 +15,9 @@ module BTC
     include ScriptErrors
     include Opcodes
 
-    # Flags specified for this interpreter, not including flags added by plugins.
+    # Flags specified for this interpreter, not including flags added by extensions.
     attr_accessor :flags
-    attr_accessor :plugins
+    attr_accessor :extensions
     attr_accessor :signature_checker
     attr_accessor :raise_on_failure
     attr_accessor :max_pushdata_size
@@ -36,7 +36,7 @@ module BTC
     # (required if the scripts use signature-checking opcodes).
     # Checker can be transaction checker or block checker
     def initialize(flags:             SCRIPT_VERIFY_NONE,
-                   plugins:           nil,
+                   extensions:           nil,
                    signature_checker: nil,
                    raise_on_failure:  false,
                    max_pushdata_size: MAX_SCRIPT_ELEMENT_SIZE,
@@ -46,7 +46,7 @@ module BTC
                    integer_max_size:  4,
                    locktime_max_size: 5)
       @flags             = flags
-      @plugins           = plugins || []
+      @extensions           = extensions || []
       @signature_checker = signature_checker
       
       @raise_on_failure  = raise_on_failure
@@ -69,8 +69,8 @@ module BTC
         return set_error(SCRIPT_ERR_SIG_PUSHONLY)
       end
 
-      if plugin = plugin_to_handle_scripts(signature_script, output_script)
-        return plugin.handle_scripts(
+      if extension = extension_to_handle_scripts(signature_script, output_script)
+        return extension.handle_scripts(
           interpreter: self,
           signature_script: signature_script,
           output_script: output_script
@@ -87,13 +87,13 @@ module BTC
         return false
       end
 
-      # This is implemented in P2SHPlugin
+      # This is implemented in P2SHExtension
       # stack_copy = if flag?(SCRIPT_VERIFY_P2SH)
       #   @stack.dup
       # end
 
-      if plugin = plugin_to_handle_output_script(output_script)
-        return plugin.handle_output_script(
+      if extension = extension_to_handle_output_script(output_script)
+        return extension.handle_output_script(
           interpreter: self,
           output_script: output_script
         ) && verify_clean_stack_if_needed
@@ -118,7 +118,7 @@ module BTC
       end
 
       # Additional validation for pay-to-script-hash (P2SH) transactions:
-      # See P2SHPlugin#did_execute_output_script.
+      # See P2SHExtension#did_execute_output_script.
 
       return verify_clean_stack_if_needed
     end
@@ -140,7 +140,7 @@ module BTC
         return set_error(SCRIPT_ERR_SCRIPT_SIZE)
       end
 
-      # Altstack is not shared between individual runs, but we still store it in ivar to make available to the plugins.
+      # Altstack is not shared between individual runs, but we still store it in ivar to make available to the extensions.
       @altstack = []
 
       number_zero  = ScriptNumber.new(integer: 0)
@@ -169,10 +169,10 @@ module BTC
           end
         end
         
-        # Check if there is a plugin for this opcode before we check for disabled opcodes.
-        opcode_plugin = plugin_to_handle_opcode(opcode)
+        # Check if there is a extension for this opcode before we check for disabled opcodes.
+        opcode_extension = extension_to_handle_opcode(opcode)
         
-        if !opcode_plugin
+        if !opcode_extension
           if opcode == OP_CAT ||
              opcode == OP_SUBSTR ||
              opcode == OP_LEFT ||
@@ -200,9 +200,9 @@ module BTC
           end
           stack_push(chunk.pushdata)
 
-        elsif should_execute && opcode_plugin
+        elsif should_execute && opcode_extension
           
-          if !opcode_plugin.handle_opcode(interpreter: self, opcode: opcode)
+          if !opcode_extension.handle_opcode(interpreter: self, opcode: opcode)
             # error is set already
             return false
           end
@@ -224,7 +224,7 @@ module BTC
           when OP_NOP
             # nothing
             
-          # See CLTVPlugin
+          # See CLTVExtension
           # when OP_CHECKLOCKTIMEVERIFY
           #   begin
           #     if !flag?(SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY)
@@ -896,7 +896,7 @@ module BTC
     end
 
     def all_flags
-      @plugins.inject(@flags) do |f, p|
+      @extensions.inject(@flags) do |f, p|
         f | p.extra_flags
       end
     end
@@ -929,44 +929,44 @@ module BTC
 
     private
 
-    def plugin_to_handle_scripts(signature_script, output_script)
-      @plugins.each do |plugin|
-        if plugin.should_handle_scripts(interpreter: self, signature_script: signature_script, output_script: output_script)
-          return plugin
+    def extension_to_handle_scripts(signature_script, output_script)
+      @extensions.each do |extension|
+        if extension.should_handle_scripts(interpreter: self, signature_script: signature_script, output_script: output_script)
+          return extension
         end
       end
       nil
     end
 
-    def plugin_to_handle_output_script(output_script)
-      @plugins.each do |plugin|
-        if plugin.should_handle_output_script(interpreter: self, output_script: output_script)
-          return plugin
+    def extension_to_handle_output_script(output_script)
+      @extensions.each do |extension|
+        if extension.should_handle_output_script(interpreter: self, output_script: output_script)
+          return extension
         end
       end
       nil
     end
 
-    def plugin_to_handle_opcode(opcode)
-      @plugins.each do |plugin|
-        if plugin.should_handle_opcode(interpreter: self, opcode: opcode)
-          return plugin
+    def extension_to_handle_opcode(opcode)
+      @extensions.each do |extension|
+        if extension.should_handle_opcode(interpreter: self, opcode: opcode)
+          return extension
         end
       end
       nil
     end
 
     def did_execute_signature_script(signature_script)
-      @plugins.each do |plugin|
-        if !plugin.did_execute_signature_script(interpreter: self, signature_script: signature_script)
+      @extensions.each do |extension|
+        if !extension.did_execute_signature_script(interpreter: self, signature_script: signature_script)
           return false
         end
       end
     end
 
     def did_execute_output_script(output_script)
-      @plugins.each do |plugin|
-        if !plugin.did_execute_output_script(interpreter: self, output_script: output_script)
+      @extensions.each do |extension|
+        if !extension.did_execute_output_script(interpreter: self, output_script: output_script)
           return false
         end
       end

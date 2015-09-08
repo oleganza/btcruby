@@ -75,12 +75,12 @@ describe BTC::Transaction do
                     end
                     
                     checker = BTC::TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
-                    plugins = []
-                    plugins << BTC::P2SHPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
-                    plugins << BTC::CLTVPlugin.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+                    extensions = []
+                    extensions << BTC::P2SHExtension.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+                    extensions << BTC::CLTVExtension.new if (flags & BTC::ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
                     interpreter = BTC::ScriptInterpreter.new(
                       flags: flags,
-                      plugins: plugins,
+                      extensions: extensions,
                       signature_checker: checker,
                       raise_on_failure: expected_result,
                     )
@@ -123,12 +123,12 @@ describe BTC::Transaction do
       
       # def verify_script(tx, txin, sig_script, output_script, flags, expected_result, record)
       #   checker = TransactionSignatureChecker.new(transaction: tx, input_index: txin.index)
-      #   plugins = []
-      #   plugins << P2SHPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
-      #   plugins << CLTVPlugin.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
+      #   extensions = []
+      #   extensions << P2SHExtension.new if (flags & ScriptFlags::SCRIPT_VERIFY_P2SH) != 0
+      #   extensions << CLTVExtension.new if (flags & ScriptFlags::SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY) != 0
       #   interpreter = ScriptInterpreter.new(
       #     flags: flags,
-      #     plugins: plugins,
+      #     extensions: extensions,
       #     signature_checker: checker,
       #     raise_on_failure: expected_result,
       #   )

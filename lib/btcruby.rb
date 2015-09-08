@@ -41,9 +41,9 @@ require_relative 'btcruby/script/signature_checker.rb'
 require_relative 'btcruby/script/test_signature_checker.rb'
 require_relative 'btcruby/script/transaction_signature_checker.rb'
 
-require_relative 'btcruby/script/script_interpreter_plugin.rb'
-require_relative 'btcruby/script/p2sh_plugin.rb'
-require_relative 'btcruby/script/cltv_plugin.rb'
+require_relative 'btcruby/script/script_interpreter_extension.rb'
+require_relative 'btcruby/script/p2sh_extension.rb'
+require_relative 'btcruby/script/cltv_extension.rb'
 
 require_relative 'btcruby/transaction_builder.rb'
 require_relative 'btcruby/proof_of_work.rb'
