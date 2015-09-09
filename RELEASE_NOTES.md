@@ -2,6 +2,18 @@
 BTCRuby Release Notes
 =====================
 
+1.2.1 (September 8, 2015)
+-----------------------
+
+* Added more arithmetic operators to `BTC::ScriptNumber`.
+
+
+1.2 (September 8, 2015)
+-----------------------
+
+* Renamed Script Plugin to Script Extension.
+
+
 1.1.6 (August 26, 2015)
 -----------------------
 

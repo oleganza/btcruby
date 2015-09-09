@@ -10,7 +10,7 @@ module BTC
 
   class ScriptNumber
     DEFAULT_MAX_SIZE = 4
-    
+
     INT64_MAX = 0x7fffffffffffffff
     INT64_MIN = -INT64_MAX - 1
 
@@ -57,10 +57,10 @@ module BTC
     def  <(other); @integer  < other.to_i; end
     def >=(other); @integer >= other.to_i; end
     def  >(other); @integer  > other.to_i; end
-    
+
     def +(other); self.class.new(integer: @integer + other.to_i); end
     def -(other); self.class.new(integer: @integer - other.to_i); end
-    
+
     def +@
       self
     end
@@ -69,7 +69,38 @@ module BTC
       assert(@integer > INT64_MIN && @integer <= INT64_MAX, "Integer will not be within int64 range after negation")
       self.class.new(integer: -@integer)
     end
-    
+
+    def *(other)
+      # TODO: add asserts to check that result fits within int64 limits
+      self.class.new(integer: @integer * other.to_i)
+    end
+
+    def /(other)
+      # TODO: add asserts to check that result fits within int64 limits
+      self.class.new(integer: @integer / other.to_i)
+    end
+
+    def <<(other)
+      # TODO: add asserts to check that result fits within int64 limits
+      assert(other >= 0, "Shift amount must not be negative")
+      a = @integer.abs
+      r = a << other.to_i
+      if a != @integer
+        r = -r
+      end
+      self.class.new(integer: r)
+    end
+
+    def >>(other)
+      # TODO: add asserts to check that result fits within int64 limits
+      assert(other >= 0, "Shift amount must not be negative")
+      a = @integer.abs
+      r = a >> other.to_i
+      if a != @integer
+        r = -r
+      end
+      self.class.new(integer: r)
+    end
 
 
     # Conversion Methods
@@ -138,7 +169,7 @@ module BTC
 
       BTC.data_from_bytes(result)
     end
-    
+
     def assert(condition, message)
       raise message if !condition
     end
