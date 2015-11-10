@@ -25,6 +25,9 @@ module BTC
       signature_script = @signature_script
       @signature_script = nil
 
+      # NOTE: check for empty stack or "false" item happens
+      # in ScriptInterpreter before this callback is invoked.
+
       # If output script is not P2SH, do nothing.
       return true if !output_script.p2sh?
 
