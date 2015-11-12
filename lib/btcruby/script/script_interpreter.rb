@@ -46,7 +46,7 @@ module BTC
                    integer_max_size:  4,
                    locktime_max_size: 5)
       @flags             = flags
-      @extensions           = extensions || []
+      @extensions        = extensions || []
       @signature_checker = signature_checker
       
       @raise_on_failure  = raise_on_failure
@@ -142,7 +142,8 @@ module BTC
 
       # Altstack is not shared between individual runs, but we still store it in ivar to make available to the extensions.
       @altstack = []
-
+      @run_script_chunks = script.chunks.to_a.dup # can be modified by `insert_script`
+      
       number_zero  = ScriptNumber.new(integer: 0)
       number_one   = ScriptNumber.new(integer: 1)
       zero_value = "".b
@@ -153,8 +154,11 @@ module BTC
       require_minimal = flag?(SCRIPT_VERIFY_MINIMALDATA)
       condition_flags = []
       index_after_codeseparator = 0
-      script.chunks.each_with_index do |chunk, chunk_index|
-
+      chunk_index = -1 # start with -1 because we increment it in the beginning of the loop.
+      
+      while chunk = @run_script_chunks.shift
+        chunk_index += 1
+        
         opcode = chunk.opcode
         should_execute = !condition_flags.include?(false)
 
@@ -652,8 +656,8 @@ module BTC
               return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
             end
 
-            sig = @stack[-2]
-            pubkey    = @stack[-1]
+            sig    = @stack[-2]
+            pubkey = @stack[-1]
 
             # Subset of script starting at the most recent codeseparator
             subscript = script.subscript(index_after_codeseparator..-1)
@@ -814,7 +818,13 @@ module BTC
     rescue ScriptNumberError => e
       return set_error(SCRIPT_ERR_UNKNOWN_ERROR, e.message)
     end # run_script
-
+    
+    
+    # Inserts another script for execution within run_script call.
+    def insert_script(script)
+      @run_script_chunks = script.chunks.to_a + @run_script_chunks
+    end
+    
 
     def stack_pop
       r = @stack.pop

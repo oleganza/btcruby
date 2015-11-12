@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.2.2 (November 12, 2015)
+-----------------------
+
+* Added support for inserting scripts during script execution in `BTC::ScriptInterpreter`.
+
+
 1.2.1 (September 8, 2015)
 -----------------------
 

@@ -62,9 +62,10 @@ $ rake
 4. Generate and publish the gem:
 
 ```
+$ git tag VERSION
 $ git push origin --tags
 $ gem build btcruby.gemspec
-$ gem push btcruby-VER.gem
+$ gem push btcruby-VERSION.gem
 ```
 
 ## Authors
