@@ -191,12 +191,18 @@ module BTC
     # Returns true if this script is a 'OP_RETURN <data>' script and
     # data size is within 40 bytes.
     def standard_op_return_script?
-      retun false if !op_return_script? || @chunks.size != 2
+      retun false if !op_return_data_only_script? || @chunks.size != 2
       @chunks[1].pushdata.bytesize <= 40
     end
 
-    # Returns true if this script is of form 'OP_RETURN <data>'
+    # Returns true if this script's first opcode is OP_RETURN.
     def op_return_script?
+      return @chunks.size >= 1 &&
+             @chunks[0].opcode == OP_RETURN
+    end
+    
+    # Returns true if this script is of form 'OP_RETURN <data>'
+    def op_return_data_only_script?
       return @chunks.size >= 2 &&
              @chunks[0].opcode == OP_RETURN &&
              @chunks[1..-1].all?{|c| c.pushdata? }
@@ -205,14 +211,14 @@ module BTC
     # Returns first data chunk if this script is 'OP_RETURN <data>'.
     # Otherwise returns nil.
     def op_return_data
-      return nil if !op_return_script?
+      return nil if !op_return_data_only_script?
       return @chunks[1].pushdata
     end
 
     # Returns all data chunks if this script is 'OP_RETURN <data> [<data>...]'
     # Most commonly returned array contains one binary string.
     def op_return_items
-      return nil if !op_return_script?
+      return nil if !op_return_data_only_script?
       return @chunks[1, @chunks.size-1].map{|c| c.pushdata}
     end
 
@@ -220,7 +226,7 @@ module BTC
     # Only checks the prefix and minimal length, does not validate the content.
     # Use this method to quickly filter out non-asset transactions.
     def open_assets_marker?
-      return false if !op_return_script?
+      return false if !op_return_data_only_script?
       data = op_return_data
       return false if !data || data.bytesize < 6
       if data[0, AssetMarker::PREFIX_V1.bytesize] == AssetMarker::PREFIX_V1

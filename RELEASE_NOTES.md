@@ -2,6 +2,13 @@
 BTCRuby Release Notes
 =====================
 
+1.3 (November 24, 2015)
+-----------------------
+
+* `BTC::Script#op_return_script?` now returns `true` for all scripts with first opcode `OP_RETURN`, including scripts with just that opcode or non-pushdata opcodes after it.
+* `BTC::Script#op_return_data_only_script?` now returns `true` only if there is at least one pushdata chunk after `OP_RETURN` opcode and all subsequent opcodes are pushdata-only.
+
+
 1.2.2 (November 12, 2015)
 -----------------------
 
