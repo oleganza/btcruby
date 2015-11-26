@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.4 (November 26, 2015)
+-----------------------
+
+* `BTC::SecretSharing` implements Shamir's Secret Sharing Scheme (SSSS) for splitting 128-bit secrets up to 16 shares.
+
+
 1.3 (November 24, 2015)
 -----------------------
 
