@@ -18,18 +18,6 @@ module BTC
       be_from_int(SecureRandom.random_number(Order))
     end
   
-    def prng(seed)
-      x = Order
-      s = nil
-      pad = "".b
-      while x >= Order
-        s = Digest::SHA2.digest(Digest::SHA2.digest(seed + pad))[0,16]
-        x = int_from_be(s)
-        pad = pad + "\x00".b
-      end
-      s
-    end
-  
     # Returns N strings, any M of them are enough to retrieve a secret.
     # Each string encodes X and Y coordinates and also M. X & M takes one byte, Y takes 16 bytes:
     # MMMMXXXX YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY
@@ -97,7 +85,19 @@ module BTC
       end
       return be_from_int(y)
     end
-  
+
+    def prng(seed)
+      x = Order
+      s = nil
+      pad = "".b
+      while x >= Order
+        s = Digest::SHA2.digest(Digest::SHA2.digest(seed + pad))[0,16]
+        x = int_from_be(s)
+        pad = pad + "\x00".b
+      end
+      s
+    end
+
     # Returns mmmmxxxx yyyyyyyy yyyyyyyy ... (16 bytes of y)
     def string_from_point(m, x, y)
       m = to_nibble(m)
