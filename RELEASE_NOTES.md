@@ -2,6 +2,11 @@
 BTCRuby Release Notes
 =====================
 
+1.5 (November 29, 2015)
+-----------------------
+
+* `BTC::SecretSharing` changes API to support 96-, 104- and 128-bit secrets.
+
 1.4 (November 26, 2015)
 -----------------------
 
