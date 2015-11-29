@@ -127,9 +127,12 @@ describe BTC::SecretSharing do
         shares = ssss.split(secret, m, n)
         hexshares = shares.map{|s| BTC.to_hex(s)}
         hexshares.must_equal defined_shares
-        subshares = shares[0...m] # TODO: iterate over various combinations
-        restored_secret = ssss.restore(subshares)
-        BTC.to_hex(restored_secret).must_equal hexsecret
+        [shares, shares.reverse].each do |list|
+          [list[0...m], list[0...m].reverse].each do |subshares|
+            restored_secret = ssss.restore(subshares)
+            BTC.to_hex(restored_secret).must_equal hexsecret
+          end
+        end
       end
     end
   end
