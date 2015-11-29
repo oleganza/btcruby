@@ -2,7 +2,7 @@
 # Author: Oleg Andreev <oleganza@gmail.com>
 #
 # * Deterministic, extensible algorithm: every combination of secret and threshold produces exactly the same shares on each run. More shares can be generated without invalidating the first ones.
-# * This algorithm splits and restores 128-bit secrets with up to 16 shares and up to 16 shares threshold.
+# * This algorithm splits and restores 96/104/128-bit secrets with up to 16 shares and up to 16 shares threshold.
 # * Secret is a binary 16-byte string below ffffffffffffffffffffffffffffff61.
 # * Shares are 17-byte binary strings with first byte indicating threshold and share index (these are necessary for recovery).
 # 
@@ -10,22 +10,37 @@
 require 'digest/sha2'
 require 'securerandom'
 module BTC
-  module SecretSharing
-    extend self
-    Order = 0xffffffffffffffffffffffffffffff61 # Largest prime below 2**128: (2**128 - 159)
-  
+  class SecretSharing
+    
+    Order96  = 0xffffffffffffffffffffffef         # Largest prime below 2**96: (2**96 - 17)
+    Order104 = 0xffffffffffffffffffffffffef       # Largest prime below 2**104: (2**104 - 17)
+    Order128 = 0xffffffffffffffffffffffffffffff61 # Largest prime below 2**128: (2**128 - 159)
+    
+    def initialize(bitlength = 128)
+      if bitlength == 128
+        @order = Order128
+      elsif bitlength == 104
+        @order = Order104
+      elsif bitlength == 96
+        @order = Order96
+      else
+        raise ArgumentError, "Unsupported bit length #{bitlength}"
+      end
+      @bitlength = bitlength
+    end
+    
     def random
-      be_from_int(SecureRandom.random_number(Order))
+      be_from_int(SecureRandom.random_number(@order))
     end
   
     # Returns N strings, any M of them are enough to retrieve a secret.
     # Each string encodes X and Y coordinates and also M. X & M takes one byte, Y takes 16 bytes:
     # MMMMXXXX YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY YYYYYYYY
     def split(secret, m, n)
-      prime = Order
+      prime = @order
       secret_num = int_from_be(secret)
-      if secret_num >= Order
-        raise "Secret cannot be encoded with 128-bit SSSS"
+      if secret_num >= @order
+        raise "Secret cannot be encoded with #{@bitlength}-bit SSSS"
       end
       if !(n >= 1 && n <= 16)
         raise "N must be between 1 and 16"
@@ -56,7 +71,7 @@ module BTC
     # Transforms M 17-byte binary strings into original secret 16-byte binary string.
     # Each share string must be well-formed.
     def restore(shares)
-      prime = Order
+      prime = @order
       shares = shares.dup.uniq
       raise "No shares provided" if shares.size == 0
       points = shares.map{|s| point_from_string(s) } # [[m,x,y],...]
@@ -87,11 +102,11 @@ module BTC
     end
 
     def prng(seed)
-      x = Order
+      x = @order
       s = nil
       pad = "".b
-      while x >= Order
-        s = Digest::SHA2.digest(Digest::SHA2.digest(seed + pad))[0,16]
+      while x >= @order
+        s = Digest::SHA2.digest(Digest::SHA2.digest(seed + pad))[0,@bitlength/8]
         x = int_from_be(s)
         pad = pad + "\x00".b
       end
@@ -154,7 +169,7 @@ module BTC
       r[:total]
     end
 
-    def be_from_int(i, pad = 128)
+    def be_from_int(i, pad = @bitlength)
       a = []
       while i > 0
         a.unshift(i % 256)
@@ -168,21 +183,21 @@ end
 
 if $0 == __FILE__
   
-  SSSS = BTC::SecretSharing
+  ssss = BTC::SecretSharing.new(128)
   require_relative 'data.rb'
   
   # Usage 
-  secret = SSSS.random
+  secret = ssss.random
   puts "Secret: #{BTC.to_hex(secret)}"
-  shares = SSSS.split(secret, 2, 3)
+  shares = ssss.split(secret, 2, 3)
   shares.each do |share|
     puts "Share:  #{BTC.to_hex(share)}"
   end
-  restored_secret = SSSS.restore([shares[1], shares[0]])
+  restored_secret = ssss.restore([shares[1], shares[0]])
   puts "Recovered secret with shares 2 and 1: #{BTC.to_hex(restored_secret)}"
-  restored_secret = SSSS.restore([shares[0], shares[2]])
+  restored_secret = ssss.restore([shares[0], shares[2]])
   puts "Recovered secret with shares 1 and 3: #{BTC.to_hex(restored_secret)}"
-  restored_secret = SSSS.restore([shares[1], shares[2]])
+  restored_secret = ssss.restore([shares[1], shares[2]])
   puts "Recovered secret with shares 2 and 3: #{BTC.to_hex(restored_secret)}"
   
   # Output:
@@ -232,16 +247,49 @@ if $0 == __FILE__
       "2-of-2" => ["2125df3f1da76af07c37689382bc8201a6", "224bbe7e3b4ed5e0f86ed127057904034c"],
       "2-of-3" => ["2125df3f1da76af07c37689382bc8201a6", "224bbe7e3b4ed5e0f86ed127057904034c", "23719dbd58f640d174a639ba88358604f2"],
       "3-of-3" => ["31651161eeddabb39134be97908f0d7d9e", "32671d1a7e6d7ef24037990a5285a75164", "33062329aeaf79bc0d088f5845e3cd7b52"],
-    }
+    },
+    {
+      "secret" => "31415926535897932384626433", # 104 bits
+      "1-of-1" => ["1131415926535897932384626433"],
+      "1-of-2" => ["1131415926535897932384626433", "1231415926535897932384626433"],
+      "2-of-2" => ["21a8453099fb8ae36aab2c1b6000", "221f49080da3bd2f4232d3d45bde"],
+      "1-of-3" => ["1131415926535897932384626433", "1231415926535897932384626433", "1331415926535897932384626433"],
+      "2-of-3" => ["21a8453099fb8ae36aab2c1b6000", "221f49080da3bd2f4232d3d45bde", "23964cdf814bef7b19ba7b8d57ab"],
+      "3-of-3" => ["312b1880cc54fa4f009a4828f7d1", "3229a1cb3a58caea9c2bf0a31cb3", "332cdd38705eca6a65d87dd0d2d9"],
+      "4-of-6" => ["414dc7bfe7e209630e44617d9737", "422da138cfafb6fa65f2556740c0", "43bd57245c5ccd2a2b2018645fa5", "44e972e30c89b7beeec062b9f2df", "459e7dd55ed6e28541c5ecacf956", "46c9015bd1e4b949b5236e8271e1"],
+      "10-of-16"=>["a1b7a1ae5c3b1de94a8f4b8f7e05", "a25906c43a8969f6b5bf4be06006", "a3e97beb27daf0e2f81e0346a327", "a4d1a2cbee6be940edf213ccbc5f", "a50810074c61f554e9790453f951", "a629b4cf2ee2e5692af73337a0ca", "a7902bbc8ad42f8f9d15128e8758", "a8e6e7bce215a6f69d903a756a02", "a9834eca7f01f1a00215cf0ab33c", "aaa7b73a49f876d11a0b258fec2f", "abde0dc1d5af02f828197e7e0ac7", "acbc9befd7052707b1821140074e", "adadfaa8b410696a0d9089baaf84", "aebcb2502c16b5afd4f377c98514", "afeb62a04f2c15fa2f540d669b95", "a04b86c51029a5de8538e14edf9e"],
+    },
+    {
+      "secret" => "deadbeefcafebabedeadbeefca",
+      "1-of-1" => ["11deadbeefcafebabedeadbeefca"],
+      "2-of-2" => ["210833159d705e79f32a1c8cea96", "2231b86c4b15be3927758b5ae551"],
+      "2-of-3" => ["210833159d705e79f32a1c8cea96", "2231b86c4b15be3927758b5ae551", "235b3dc2f8bb1df85bc0fa28e00c"],
+      "3-of-3" => ["3112462cb0571d40f6e704adf5b7", "320841c292cc488c414627a293e1", "33c0a080972a809c9dfc169cca48"],
+    },
+    {
+      "secret" => "ffffffffffffffffffffffffee",
+      "1-of-1" => ["11ffffffffffffffffffffffffee"],
+      "2-of-2" => ["21b47b7bca3c91cfa72ec99d9ded", "2268f6f79479239f4e5d933b3bec"],
+      "2-of-3" => ["21b47b7bca3c91cfa72ec99d9ded", "2268f6f79479239f4e5d933b3bec", "231d72735eb5b56ef58c5cd8d9eb"],
+      "3-of-3" => ["31354043caf86f780c8d306fa32b", "32fc8f21351fc80c54a2b8604700", "3355ec983e7609bcd84097d1eba0"],
+    },
+    {
+      "secret" => "00000000000000000000000000",
+      "1-of-1" => ["1100000000000000000000000000"],
+      "2-of-2" => ["219aa26f55d8a706cb6801023e74", "223544deabb14e0d96d002047cf9"],
+      "2-of-3" => ["219aa26f55d8a706cb6801023e74", "223544deabb14e0d96d002047cf9", "23cfe74e0189f51462380306bb6d"],
+      "3-of-3" => ["315a50b9d324cbf8cf4546d9e085", "32ca50d93a5f8028070814b77faa", "3350005e35b01c8da7486998dd80"],
+    },
   ]
   
   test_vectors.each do |test|
     hexsecret = test.delete("secret")
     secret = BTC.from_hex(hexsecret)
+    ssss = BTC::SecretSharing.new(secret.bytesize*8)
     test.each do |rule, defined_shares|
       m, n = rule.split("-of-").map{|x|x.to_i}
       puts "Testing #{hexsecret} #{rule}:"
-      shares = SSSS.split(secret, m, n)
+      shares = ssss.split(secret, m, n)
       hexshares = shares.map{|s| BTC.to_hex(s)}
       failed = false
       if hexshares != defined_shares
@@ -250,11 +298,11 @@ if $0 == __FILE__
         puts "            Expected:  #{defined_shares.inspect}"
         puts "            Generated: #{hexshares.inspect}"
       end
-      subshares = hexshares[0...m] # TODO: iterate over various combinations
-      restored_secret = SSSS.restore(subshares.map{|s| BTC.from_hex(s)})
+      subshares = shares[0...m] # TODO: iterate over various combinations
+      restored_secret = ssss.restore(subshares)
       if restored_secret != secret
         failed = true
-        puts "Failed #{hexsecret} #{rule} test: failed to restore secret using #{subshares.inspect}"
+        puts "Failed #{hexsecret} #{rule} test: failed to restore secret using #{subshares.map{|s| BTC.to_hex(s)}.inspect}"
       end
       if !failed
         puts "Ok."
@@ -262,4 +310,30 @@ if $0 == __FILE__
     end
   end
   
+  
+  begin
+    require_relative 'base58'
+    payload_length = 13
+    lengths = {}
+    (0..255).each do |ver|
+      prefixes = []
+      s = nil
+      (0..255).each do |i|
+        s = BTC::Base58.base58_from_data(ver.chr + (i.chr*payload_length))
+        #lengths[s.length] = 1
+        prefixes << s[0,1]
+        s = BTC::Base58.base58_from_data(ver.chr + Digest::SHA2.digest(ver.to_s + i.to_s)[0,payload_length])
+        lengths[s.length] = 1
+        prefixes << s[0,1]
+      end
+      prefixes = prefixes.uniq
+      puts   "Ver: #{ver} => #{prefixes}"
+      if prefixes.size == 1
+        puts "                    " + s
+      end
+    end
+    
+    puts "Lengths: #{lengths.keys.sort.inspect}"
+  rescue => e
+  end
 end
