@@ -25,7 +25,7 @@ module BTC
       ecdsa_sig = script_signature[0..-2]
 
       key = BTC::Key.new(public_key: public_key)
-      result = key.verify_ecdsa_signature(ecdsa_sig, hash)
+      result = key.verify_ecdsa_signature(ecdsa_sig, signature_hash)
       return result
     end
 

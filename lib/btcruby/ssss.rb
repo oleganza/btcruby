@@ -313,7 +313,8 @@ if $0 == __FILE__
   
   begin
     require_relative 'base58'
-    payload_length = 13
+    payload_length = 14 # 13 + checksum
+    #payload_length = 15 # 14 + checksum
     lengths = {}
     (0..255).each do |ver|
       prefixes = []

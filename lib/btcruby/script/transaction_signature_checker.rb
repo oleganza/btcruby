@@ -2,11 +2,16 @@ module BTC
   class TransactionSignatureChecker
     include SignatureChecker
     
+    attr_accessor :version
     attr_accessor :transaction
     attr_accessor :input_index
-    def initialize(transaction: nil, input_index: nil)
+    attr_accessor :amount
+    
+    def initialize(version: 0, transaction: nil, input_index: nil, amount: 0)
+      @version     = version
       @transaction = transaction
       @input_index = input_index
+      @amount      = amount
     end
     
     def check_signature(script_signature:nil, public_key:nil, script:nil)
@@ -19,7 +24,13 @@ module BTC
       ecdsa_sig = script_signature[0..-2]
       
       key = BTC::Key.new(public_key: public_key)
-      hash = @transaction.signature_hash(input_index: @input_index, output_script: script, hash_type: hashtype)
+      hash = @transaction.signature_hash(
+        input_index:   @input_index, 
+        output_script: script, 
+        hash_type:     hashtype, 
+        version:       version, 
+        amount:        amount
+      )
       result = key.verify_ecdsa_signature(ecdsa_sig, hash)
       return result
     rescue BTC::FormatError => e # public key is invalid

@@ -332,7 +332,7 @@ module BTC
     # Hash for signing a transaction.
     # You should specify an input index, output script of the previous transaction for that input,
     # and an optional hash type (default is SIGHASH_ALL).
-    def signature_hash(input_index: nil, output_script: nil, hash_type: BTC::SIGHASH_ALL)
+    def signature_hash(input_index: nil, output_script: nil, hash_type: BTC::SIGHASH_ALL, version: 0, amount: 0)
 
       raise ArgumentError, "Should specify input_index in Transaction#signature_hash." if !input_index
       raise ArgumentError, "Should specify output_script in Transaction#signature_hash." if !output_script

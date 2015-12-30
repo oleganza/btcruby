@@ -33,6 +33,13 @@ module BTC
       @index == INVALID_INDEX && @transaction_hash == ZERO_HASH256
     end
 
+    def data
+      data = "".b
+      data << BTC::Data.ensure_binary_encoding(transaction_hash)
+      data << BTC::WireFormat.encode_uint32le(index)
+      data
+    end
+
     def ==(other)
       index == other.index &&
       transaction_hash == other.transaction_hash

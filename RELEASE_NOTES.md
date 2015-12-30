@@ -2,10 +2,17 @@
 BTCRuby Release Notes
 =====================
 
+1.5.1 (December 30, 2015)
+-----------------------
+
+* `BTC::TransactionSignatureChecker` accepts `version` and `amount` to support different hashing schemes (e.g. segwit) and passes them to `BTC::Transaction#signature_hash` function.
+
+
 1.5 (November 29, 2015)
 -----------------------
 
 * `BTC::SecretSharing` changes API to support 96-, 104- and 128-bit secrets.
+
 
 1.4 (November 26, 2015)
 -----------------------
