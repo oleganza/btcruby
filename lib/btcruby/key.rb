@@ -126,7 +126,7 @@ module BTC
 
     # Returns a PublicKeyAddress instance that encodes a public key hash.
     def address(network: nil)
-      PublicKeyAddress.new(public_key: self.public_key, network: network)
+      PublicKeyAddress.new(public_key: self.public_key, network: network || self.network)
     end
 
     # Returns a WIF instance that encodes private key.

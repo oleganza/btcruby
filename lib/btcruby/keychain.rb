@@ -452,6 +452,25 @@ module BTC
         end
       end
     end
-
+    
+    # BIP44 Support
+    
+    def bip44_keychain(network: Network.mainnet)
+      network_index = network.mainnet? ? 0 : 1
+      derived_keychain(44, hardened: true).derived_keychain(network_index, hardened: true)
+    end
+    
+    def bip44_account_keychain(account_index)
+      derived_keychain(account_index, hardened: true)
+    end
+    
+    def bip44_external_keychain
+      derived_keychain(0, hardened: false)
+    end
+    
+    def bip44_internal_keychain
+      derived_keychain(1, hardened: false)
+    end
+    
   end # Keychain
 end # BTC

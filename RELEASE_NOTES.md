@@ -2,8 +2,15 @@
 BTCRuby Release Notes
 =====================
 
+1.6 (January 15, 2015)
+-------------------------
+
+* `BTC::Mnemonic` implements read-only part of BIP44.
+* `BTC::Keychain` implements utility methods to derive BIP44 keys.
+
+
 1.5.1 (December 30, 2015)
------------------------
+-------------------------
 
 * `BTC::TransactionSignatureChecker` accepts `version` and `amount` to support different hashing schemes (e.g. segwit) and passes them to `BTC::Transaction#signature_hash` function.
 
