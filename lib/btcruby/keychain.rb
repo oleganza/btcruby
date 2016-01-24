@@ -24,7 +24,7 @@ module BTC
 
     PUBLIC_MAINNET_VERSION  = 0x0488B21E # xpub
     PRIVATE_MAINNET_VERSION = 0x0488ADE4 # xprv
-    PUBLIC_TESNET_VERSION   = 0x043587CF # tpub
+    PUBLIC_TESTNET_VERSION  = 0x043587CF # tpub
     PRIVATE_TESTNET_VERSION = 0x04358394 # tprv
 
     # Instance of BTC::Key that is a "head" of this keychain.
@@ -127,7 +127,7 @@ module BTC
 
     def extended_public_key
       @extended_public_key ||= begin
-        prefix = _extended_key_prefix(mainnet? ? PUBLIC_MAINNET_VERSION : PUBLIC_TESNET_VERSION)
+        prefix = _extended_key_prefix(mainnet? ? PUBLIC_MAINNET_VERSION : PUBLIC_TESTNET_VERSION)
         BTC::Base58.base58check_from_data(prefix + @public_key)
       end
     end
@@ -251,13 +251,13 @@ module BTC
           @network = Network.testnet
         end
 
-      elsif version == PUBLIC_MAINNET_VERSION || version == PUBLIC_TESNET_VERSION
+      elsif version == PUBLIC_MAINNET_VERSION || version == PUBLIC_TESTNET_VERSION
         # Should have a 33-byte public key with non-zero first byte.
         if keyprefix == 0x00
           raise BTCError, "Extended public key must have non-zero first byte (received #{keyprefix})"
         end
         @public_key = xkeydata[45, 33]
-        if version == PUBLIC_TESNET_VERSION
+        if version == PUBLIC_TESTNET_VERSION
           @network = Network.testnet
         end
       else
@@ -452,25 +452,25 @@ module BTC
         end
       end
     end
-    
+
     # BIP44 Support
-    
+
     def bip44_keychain(network: Network.mainnet)
       network_index = network.mainnet? ? 0 : 1
       derived_keychain(44, hardened: true).derived_keychain(network_index, hardened: true)
     end
-    
+
     def bip44_account_keychain(account_index)
       derived_keychain(account_index, hardened: true)
     end
-    
+
     def bip44_external_keychain
       derived_keychain(0, hardened: false)
     end
-    
+
     def bip44_internal_keychain
       derived_keychain(1, hardened: false)
     end
-    
+
   end # Keychain
 end # BTC
