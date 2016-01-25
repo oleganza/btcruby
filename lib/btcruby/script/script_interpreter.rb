@@ -36,7 +36,7 @@ module BTC
     # (required if the scripts use signature-checking opcodes).
     # Checker can be transaction checker or block checker
     def initialize(flags:             SCRIPT_VERIFY_NONE,
-                   extensions:           nil,
+                   extensions:        nil,
                    signature_checker: nil,
                    raise_on_failure:  false,
                    max_pushdata_size: MAX_SCRIPT_ELEMENT_SIZE,
@@ -144,8 +144,8 @@ module BTC
       @altstack = []
       @run_script_chunks = script.chunks.to_a.dup # can be modified by `insert_script`
       
-      number_zero  = ScriptNumber.new(integer: 0)
-      number_one   = ScriptNumber.new(integer: 1)
+      number_zero  = BTC::ScriptNumber.new(integer: 0)
+      number_one   = BTC::ScriptNumber.new(integer: 1)
       zero_value = "".b
       false_value = "".b
       true_value = "\x01".b
@@ -216,7 +216,7 @@ module BTC
           case opcode
           when OP_1NEGATE, OP_1..OP_16
             # ( -- value)
-            num = ScriptNumber.new(integer: opcode - (OP_1 - 1))
+            num = BTC::ScriptNumber.new(integer: opcode - (OP_1 - 1))
             stack_push(num.data)
             # The result of these opcodes should always be the minimal way to push the data
             # they push, so no need for a CheckMinimalPush here.
@@ -408,7 +408,7 @@ module BTC
 
           when OP_DEPTH
             # -- stacksize
-            sn = ScriptNumber.new(integer: @stack.size)
+            sn = BTC::ScriptNumber.new(integer: @stack.size)
             stack_push(sn.data)
 
           when OP_DROP
@@ -489,7 +489,7 @@ module BTC
             if @stack.size < 1
               return set_error(SCRIPT_ERR_INVALID_STACK_OPERATION)
             end
-            sn = ScriptNumber.new(integer: @stack.last.size)
+            sn = BTC::ScriptNumber.new(integer: @stack.last.size)
             stack_push(sn.data)
 
 
@@ -548,9 +548,9 @@ module BTC
             when OP_ABS
               bn = -bn if bn < 0
             when OP_NOT
-              bn = ScriptNumber.new(boolean: (bn == 0))
+              bn = BTC::ScriptNumber.new(boolean: (bn == 0))
             when OP_0NOTEQUAL
-              bn = ScriptNumber.new(boolean: (bn != 0))
+              bn = BTC::ScriptNumber.new(boolean: (bn != 0))
             else
               raise "invalid opcode"
             end
@@ -566,7 +566,7 @@ module BTC
 
             bn1 = cast_to_number(@stack[-2])
             bn2 = cast_to_number(@stack[-1])
-            bn = ScriptNumber.new(integer: 0)
+            bn = BTC::ScriptNumber.new(integer: 0)
 
             case opcode
             when OP_ADD
@@ -574,21 +574,21 @@ module BTC
             when OP_SUB
               bn = bn1 - bn2
             when OP_BOOLAND
-              bn = ScriptNumber.new(boolean: ((bn1 != 0) && (bn2 != 0)))
+              bn = BTC::ScriptNumber.new(boolean: ((bn1 != 0) && (bn2 != 0)))
             when OP_BOOLOR
-              bn = ScriptNumber.new(boolean: ((bn1 != 0) || (bn2 != 0)))
+              bn = BTC::ScriptNumber.new(boolean: ((bn1 != 0) || (bn2 != 0)))
             when OP_NUMEQUAL, OP_NUMEQUALVERIFY
-              bn = ScriptNumber.new(boolean: (bn1 == bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 == bn2))
             when OP_NUMNOTEQUAL
-              bn = ScriptNumber.new(boolean: (bn1 != bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 != bn2))
             when OP_LESSTHAN
-              bn = ScriptNumber.new(boolean: (bn1 < bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 < bn2))
             when OP_GREATERTHAN
-              bn = ScriptNumber.new(boolean: (bn1 > bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 > bn2))
             when OP_LESSTHANOREQUAL
-              bn = ScriptNumber.new(boolean: (bn1 <= bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 <= bn2))
             when OP_GREATERTHANOREQUAL
-              bn = ScriptNumber.new(boolean: (bn1 >= bn2))
+              bn = BTC::ScriptNumber.new(boolean: (bn1 >= bn2))
             when OP_MIN
               bn = (bn1 < bn2 ? bn1 : bn2)
             when OP_MAX
@@ -815,7 +815,7 @@ module BTC
       end
 
       return true
-    rescue ScriptNumberError => e
+    rescue BTC::ScriptNumberError => e
       return set_error(SCRIPT_ERR_UNKNOWN_ERROR, e.message)
     end # run_script
     
@@ -914,7 +914,7 @@ module BTC
     def cast_to_number(data,
                        require_minimal: flag?(SCRIPT_VERIFY_MINIMALDATA),
                        max_size: @integer_max_size)
-      ScriptNumber.new(data: data, require_minimal: require_minimal, max_size: max_size)
+      BTC::ScriptNumber.new(data: data, require_minimal: require_minimal, max_size: max_size)
     end
 
     def cast_to_bool(data)
