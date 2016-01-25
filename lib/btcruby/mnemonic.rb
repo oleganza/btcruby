@@ -1,4 +1,4 @@
-# BTC::Mnemonic implements BIP44: mnemonic-based hierarchical deterministic wallets.
+# BTC::Mnemonic implements BIP39: mnemonic-based hierarchical deterministic wallets.
 # Currently only supports restoring keychain from words. Generating sentence.
 require 'openssl'
 require 'openssl/digest'
