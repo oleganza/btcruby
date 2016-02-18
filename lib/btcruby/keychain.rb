@@ -107,9 +107,9 @@ module BTC
 
     def key
       @key ||= if @private_key
-        BTC::Key.new(private_key: @private_key, public_key_compressed: true)
+        BTC::Key.new(private_key: @private_key, public_key_compressed: true, network: @network)
       else
-        BTC::Key.new(public_key: @public_key)
+        BTC::Key.new(public_key: @public_key, network: @network)
       end
     end
 
