@@ -248,7 +248,7 @@ module BTC
     # and a new script instance is returned.
     def without_dropped_prefix_data
       if dropped_prefix_data
-        return self.class.new << @chunks[2..-1]
+        return Script.new << @chunks[2..-1]
       end
       self
     end
@@ -288,7 +288,7 @@ module BTC
 
     # Complete copy of a script.
     def dup
-      self.class.new(data: self.data)
+      Script.new(data: self.data)
     end
 
     def ==(other)
@@ -324,7 +324,7 @@ module BTC
     # Wraps the recipient into an output P2SH script
     # (OP_HASH160 <20-byte hash of the recipient> OP_EQUAL).
     def p2sh_script
-      self.class.new << OP_HASH160 << BTC.hash160(self.data) << OP_EQUAL
+      Script.new << OP_HASH160 << BTC.hash160(self.data) << OP_EQUAL
     end
 
 
@@ -336,18 +336,18 @@ module BTC
     def simulated_signature_script(strict: true)
       if public_key_hash_script?
          # assuming non-compressed pubkeys to be conservative
-        return self.class.new << Script.simulated_signature(hashtype: SIGHASH_ALL) << Script.simulated_uncompressed_pubkey
+        return Script.new << Script.simulated_signature(hashtype: SIGHASH_ALL) << Script.simulated_uncompressed_pubkey
 
       elsif public_key_script?
-        return self.class.new << Script.simulated_signature(hashtype: SIGHASH_ALL)
+        return Script.new << Script.simulated_signature(hashtype: SIGHASH_ALL)
 
       elsif script_hash_script? && !strict
         # This is a wild approximation, but works well if most p2sh scripts are 2-of-3 multisig scripts.
         # If you have a very particular smart contract scheme you should not use TransactionBuilder which estimates fees this way.
-        return self.class.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*2 << Script.simulated_multisig_script(2,3).data
+        return Script.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*2 << Script.simulated_multisig_script(2,3).data
 
       elsif multisig_script?
-        return self.class.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*self.multisig_signatures_required
+        return Script.new << OP_0 << [Script.simulated_signature(hashtype: SIGHASH_ALL)]*self.multisig_signatures_required
       else
         return nil
       end
@@ -463,7 +463,7 @@ module BTC
 
     # Same arguments as with Array#[].
     def subscript(*args)
-      self.class.new << chunks[*args]
+      Script.new << chunks[*args]
     end
     alias_method :[], :subscript
 
@@ -478,7 +478,7 @@ module BTC
       subscriptsize = subscript.chunks.size
       buf = []
       i = 0
-      result = self.class.new
+      result = Script.new
       chunks.each do |chunk|
         if chunk == subscript.chunks[i]
           buf << chunk
