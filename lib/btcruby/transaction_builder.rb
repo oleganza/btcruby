@@ -223,7 +223,7 @@ module BTC
 
         # Check if inputs cover the fees
         if result.outputs_amount < 0
-          raise InsufficientFundsError
+          raise InsufficientFundsError.new(result)
         end
 
         # Warn if the output amount is relatively small.
@@ -282,7 +282,7 @@ module BTC
 
       while true
         if (sorted_utxos.size + mandatory_utxos.size) == 0
-          raise InsufficientFundsError
+          raise InsufficientFundsError.new(result)
         end
 
         utxo = nil
@@ -361,7 +361,7 @@ module BTC
             else
               # Change is negative, we need more funds for this transaction.
               # Try adding more utxos on the next cycle.
-
+              result.fee = fee
             end
 
           end # if inputs_amount >= outputs_amount
@@ -518,4 +518,3 @@ if $0 == __FILE__
 
 
 end
-

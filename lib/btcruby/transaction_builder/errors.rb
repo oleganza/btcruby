@@ -10,6 +10,11 @@ module BTC
     class MissingUnspentOutputsError < Error; end
 
     # Unspent outputs are not sufficient to build the transaction.
-    class InsufficientFundsError < Error; end
+    class InsufficientFundsError < Error
+      attr_accessor :result
+      def initialize(result = nil)
+        @result = result
+      end
+    end
   end
 end
