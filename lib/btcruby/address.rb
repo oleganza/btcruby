@@ -21,7 +21,7 @@
 #
 #      address = BTC::PublicKeyAddress.new(hash: hash)
 #
-# 3. To convert address to its Base68Check format call to_s:
+# 3. To convert address to its Base58Check format call to_s:
 #
 #      string = address.to_s
 #
