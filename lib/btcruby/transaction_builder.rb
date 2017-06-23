@@ -60,6 +60,10 @@ module BTC
     # Default is Transaction::DEFAULT_FEE_RATE
     attr_accessor :fee_rate
 
+    # Mining fee for this transaction.
+    # If mining_fee is set, this values will be used as the minig fee.
+    attr_reader :mining_fee
+    
     # Minimum amount of change below which transaction is not composed.
     # If change amount is non-zero and below this value, more unspent outputs are used.
     # If change amount is zero, change output is not even created and this attribute is not used.
@@ -92,10 +96,14 @@ module BTC
     # A total size of all outputs in bytes (including change output).
     attr_reader :outputs_size
 
-
     # Implementation of the attributes declared above
     # ===============================================
 
+    def initialize(options = {})
+      options.symbolize_keys!
+      @mining_fee = options[:mining_fee]  
+    end
+    
     def network
       @network ||= Network.default
     end
@@ -217,7 +225,7 @@ module BTC
         change_output = TransactionOutput.new(value: 0, script: self.change_address.public_address.script)
         result.transaction.add_output(change_output)
 
-        result.fee = compute_fee_for_transaction(result.transaction, self.fee_rate)
+        result.fee = mining_fee || compute_fee_for_transaction(result.transaction, self.fee_rate)
         result.outputs_amount = result.inputs_amount - result.fee
         result.change_amount = 0
 
@@ -329,7 +337,7 @@ module BTC
           # Before computing the fee, quick check if we have enough inputs to cover the outputs.
           # If not, go and add one more utxo before wasting time computing fees.
           if result.inputs_amount >= result.outputs_amount
-            fee = compute_fee_for_transaction(result.transaction, self.fee_rate)
+            fee = mining_fee || compute_fee_for_transaction(result.transaction, self.fee_rate)
 
             change = result.inputs_amount - result.outputs_amount - fee
 
