@@ -1,13 +1,13 @@
 PATH
   remote: .
   specs:
-    btcruby (0.1.0)
+    btcruby (1.6)
       ffi (~> 1.9, >= 1.9.3)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    ffi (1.9.3)
+    ffi (1.9.18)
     rake (10.3.2)
 
 PLATFORMS
@@ -16,3 +16,6 @@ PLATFORMS
 DEPENDENCIES
   btcruby!
   rake
+
+BUNDLED WITH
+   1.10.3
