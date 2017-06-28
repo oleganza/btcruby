@@ -22,6 +22,10 @@ describe BTC::ScriptNumber do
     BTC::ScriptNumber.new(data: "\x01").to_i.must_equal 1
   end
 
+  it "should parse 0x27 as 39" do
+    BTC::ScriptNumber.new(data: "\x27").to_i.must_equal 39
+  end
+
   it "should parse 0xff as -127" do
     BTC::ScriptNumber.new(data: "\xff").to_i.must_equal -127
   end
