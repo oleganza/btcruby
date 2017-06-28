@@ -100,8 +100,7 @@ module BTC
     # ===============================================
 
     def initialize(options = {})
-      options.symbolize_keys!
-      @mining_fee = options[:mining_fee]  
+      @mining_fee = options[:mining_fee]
     end
     
     def network
