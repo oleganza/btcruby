@@ -10,10 +10,8 @@ module BTC
 
     ffi_lib 'secp256k1'
 
-    SECP256K1_FLAGS_TYPE_CONTEXT = (1 << 0)
-    SECP256K1_FLAGS_BIT_CONTEXT_VERIFY = (1 << 8)
-    SECP256K1_FLAGS_BIT_CONTEXT_SIGN   = (1 << 9)
-    SECP256K1_CONTEXT_SIGN   = (SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_SIGN)
+    SECP256K1_CONTEXT_VERIFY = (1 << 0)
+    SECP256K1_CONTEXT_SIGN   = (1 << 1)
 
     # Note: this struct is opaque, but public. Its size will eventually be guaranteed.
     # See https://github.com/bitcoin/secp256k1/issues/288
@@ -44,7 +42,7 @@ module BTC
         privkey_buf = FFI::MemoryPointer.new(:uchar, privkey.bytesize)
         privkey_buf.put_bytes(0, privkey)
         
-        if secp256k1_ecdsa_sign(ctx, sig.pointer, hash_buf, privkey_buf, nil, nil) == 1
+        if secp256k1_ecdsa_sign(ctx, hash_buf, sig.pointer, privkey_buf, nil, nil) == 1
           # Serialize an ECDSA signature in DER format.
           bufsize = 72
           output_pointer = FFI::MemoryPointer.new(:uint8, bufsize)
