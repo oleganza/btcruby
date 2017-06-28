@@ -89,6 +89,14 @@ module BTC
       public_key_script? ||
       standard_op_return_script?
     end
+    
+    # Returns true if this is an output script wrapped in a versioned pushdata for segwit softfork.
+    def versioned_script?
+      return chunks.size == 1 &&
+             chunks[0].pushdata? &&
+             chunks[0].canonical? &&
+             chunks[0].pushdata.bytesize > 2
+    end
 
     # Returns true if the script is a pay-to-pubkey script:
     # "<pubkey> OP_CHECKSIG"
