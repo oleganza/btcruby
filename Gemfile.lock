@@ -8,6 +8,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ffi (1.9.18)
+    minitest (5.10.2)
     rake (10.3.2)
 
 PLATFORMS
@@ -15,7 +16,8 @@ PLATFORMS
 
 DEPENDENCIES
   btcruby!
+  minitest
   rake
 
 BUNDLED WITH
-   1.10.3
+   1.14.6

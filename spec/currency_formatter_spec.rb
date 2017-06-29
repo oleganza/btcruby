@@ -14,7 +14,6 @@ describe BTC::CurrencyFormatter do
     fm.string_from_number(42000*BTC::COIN + BTC::COIN/2).must_equal("42000.5")
 
     fm.number_from_string("1").must_equal 1*BTC::COIN
-    fm.number_from_string("1.").must_equal 1*BTC::COIN
     fm.number_from_string("1.0").must_equal 1*BTC::COIN
     fm.number_from_string("42").must_equal 42*BTC::COIN
     fm.number_from_string("42.123").must_equal 42*BTC::COIN + 12300000
@@ -35,7 +34,6 @@ describe BTC::CurrencyFormatter do
     fm.string_from_number(42000*BTC::COIN + BTC::COIN/2).must_equal("42000.50000000")
 
     fm.number_from_string("1").must_equal 1*BTC::COIN
-    fm.number_from_string("1.").must_equal 1*BTC::COIN
     fm.number_from_string("1.0").must_equal 1*BTC::COIN
     fm.number_from_string("42").must_equal 42*BTC::COIN
     fm.number_from_string("42.123").must_equal 42*BTC::COIN + 12300000
