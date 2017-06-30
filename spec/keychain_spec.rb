@@ -258,4 +258,9 @@ describe BTC::Keychain do
     m0pub.extended_public_key.must_equal "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH"
     m0pub.extended_private_key.must_equal nil
   end
+  it "should raise the ArgumentError when arguments are not passed" do
+    assert_raises ArgumentError do
+      BTC::Keychain.new
+    end
+  end
 end
