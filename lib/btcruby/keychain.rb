@@ -205,7 +205,7 @@ module BTC
       elsif _components
         init_with_components(*_components)
       else
-        raise ArgumentError, "Either seed or an extended " if !private_key && !public_key
+        raise ArgumentError, "Either seed or an extended " if !@private_key && !@public_key
       end
     end
 
