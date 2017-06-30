@@ -174,7 +174,7 @@ module BTC
     end
 
     # Attempts to build a transaction
-    def build(mining_fee: mining_fee)
+    def build(mining_fee: miningfee)
 
       if !self.change_address
         raise MissingChangeAddressError
@@ -217,7 +217,7 @@ module BTC
         change_output = TransactionOutput.new(value: 0, script: self.change_address.public_address.script)
         result.transaction.add_output(change_output)
 
-        result.fee =  compute_fee_for_transaction(result.transaction, self.fee_rate, mining_fee)
+        result.fee =  compute_fee_for_transaction(result.transaction, self.fee_rate, miningfee)
         result.outputs_amount = result.inputs_amount - result.fee
         result.change_amount = 0
 
