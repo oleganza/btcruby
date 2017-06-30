@@ -68,6 +68,12 @@ describe BTC::TransactionBuilder do
       result.fee.must_be :<, 0.01 * BTC::COIN
     end
 
+    it "should be able to set mining fee" do
+      @builder.fee =50690
+      result = @builder.build()
+      result.fee.must_equal 50690
+    end
+    
     it "should have valid amounts" do
       result = @builder.build
       result.inputs_amount.must_equal mock_utxos.inject(0){|sum, out| sum + out.value}
@@ -188,6 +194,12 @@ describe BTC::TransactionBuilder do
       size = result.transaction.data.bytesize # size of unsigned transaction
       result.fee.must_be :>=, (size / 1000)*BTC::Transaction::DEFAULT_FEE_RATE
       result.fee.must_be :<, 0.01 * BTC::COIN
+    end
+
+    it "should be able to set mining fee" do
+      @builder.fee =50690
+      result = @builder.build()
+      result.fee.must_equal 50690
     end
 
     it "should have valid amounts" do

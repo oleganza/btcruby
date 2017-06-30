@@ -62,7 +62,7 @@ module BTC
 
     # Mining fee for this transaction.
     # If mining_fee is set, this values will be used as the minig fee.
-    attr_reader :mining_fee
+    attr_accessor :fee
     
     # Minimum amount of change below which transaction is not composed.
     # If change amount is non-zero and below this value, more unspent outputs are used.
@@ -99,9 +99,6 @@ module BTC
     # Implementation of the attributes declared above
     # ===============================================
 
-    def initialize(options = {})
-      @mining_fee = options[:mining_fee]
-    end
     
     def network
       @network ||= Network.default
@@ -224,7 +221,7 @@ module BTC
         change_output = TransactionOutput.new(value: 0, script: self.change_address.public_address.script)
         result.transaction.add_output(change_output)
 
-        result.fee = mining_fee || compute_fee_for_transaction(result.transaction, self.fee_rate)
+        result.fee = compute_fee_for_transaction(result.transaction, self.fee_rate)
         result.outputs_amount = result.inputs_amount - result.fee
         result.change_amount = 0
 
@@ -336,7 +333,7 @@ module BTC
           # Before computing the fee, quick check if we have enough inputs to cover the outputs.
           # If not, go and add one more utxo before wasting time computing fees.
           if result.inputs_amount >= result.outputs_amount
-            fee = mining_fee || compute_fee_for_transaction(result.transaction, self.fee_rate)
+            fee = compute_fee_for_transaction(result.transaction, self.fee_rate)
 
             change = result.inputs_amount - result.outputs_amount - fee
 
@@ -381,6 +378,8 @@ module BTC
     # Helper to compute total fee for a given transaction.
     # Simulates signatures to estimate final size.
     def compute_fee_for_transaction(tx, fee_rate)
+      #return mining fee if set manually
+      return fee if fee
       # Compute fees for this tx by composing a tx with properly sized dummy signatures.
       simulated_tx = tx.dup
       simulated_tx.inputs.each do |txin|
