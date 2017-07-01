@@ -60,8 +60,8 @@ module BTC
     # Default is Transaction::DEFAULT_FEE_RATE
     attr_accessor :fee_rate
 
-    # Mining fee for this transaction.
-    # If mining_fee is set, this values will be used as the minig fee.
+    # Miner's fee for this transaction.
+    # If `fee` is not nil, fee_rate is ignored and transaction uses the specified fee.
     attr_accessor :fee
     
     # Minimum amount of change below which transaction is not composed.
@@ -378,7 +378,7 @@ module BTC
     # Helper to compute total fee for a given transaction.
     # Simulates signatures to estimate final size.
     def compute_fee_for_transaction(tx, fee_rate)
-      #return mining fee if set manually
+      # Return mining fee if set manually
       return fee if fee
       # Compute fees for this tx by composing a tx with properly sized dummy signatures.
       simulated_tx = tx.dup
