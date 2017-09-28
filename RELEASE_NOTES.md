@@ -2,6 +2,12 @@
 BTCRuby Release Notes
 =====================
 
+1.7 (September 28, 2017)
+-------------------------
+
+* Various bugfixes
+* WIP on API for the versioned scripts
+
 1.6 (January 15, 2015)
 -------------------------
 
