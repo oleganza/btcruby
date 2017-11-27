@@ -42,7 +42,7 @@ Please see [BTCRuby Reference](documentation/index.md) for API documentation and
 * We do not pollute standard classes with our methods. To use utility extensions like `String#to_hex` you should explicitly `require 'btcruby/extensions'`.
 * We use OpenSSL `BIGNUM` implementation where compatibility is critical (instead of the built-in Ruby Bignum).
 * We enforces canonical and determinstic ECDSA signatures for maximum compatibility and security using native OpenSSL functions.
-* We treat endianness explicitly. Even though most systems are little-endian, it never hurts to show where indianness is important.
+* We treat endianness explicitly. Even though most systems are little-endian, it never hurts to show where endianness is important.
 
 The goal is to provide a complete Bitcoin toolkit in Ruby.
 
