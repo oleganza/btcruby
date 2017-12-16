@@ -42,8 +42,8 @@ module BTC
     # It is set in `tx.add_input` and reset to nil in `tx.remove_all_inputs`.
     # Default is nil.
     attr_accessor :transaction
-    
-    # Optional index within owning transaction. 
+
+    # Optional index within owning transaction.
     # It is set in `tx.add_input` and reset to nil in `tx.remove_all_inputs`.
     # Default is nil.
     attr_accessor :index
@@ -54,6 +54,10 @@ module BTC
     # Optional attribute containing a value in the corresponding output (in satoshis).
     # Default is transaction_output.value or nil.
     attr_accessor :value
+
+    # BTC::Script instance that proves ownership of the previous transaction output.
+    # Contains the signature itself as defined in BIP-141
+    attr_accessor :witness
 
     # Initializes transaction input with its attributes. Every attribute has a valid default value.
     def initialize(data: nil,
@@ -200,16 +204,16 @@ module BTC
     def previous_id=(txid)
       self.previous_hash = BTC.hash_from_id(txid)
     end
-    
+
     def outpoint
       Outpoint.new(transaction_hash: previous_hash, index: previous_index)
     end
-    
+
     def outpoint=(outpoint)
       self.previous_hash = outpoint.transaction_hash
       self.previous_index = outpoint.index
     end
-    
+
     def final?
       self.sequence == MAX_SEQUENCE
     end
