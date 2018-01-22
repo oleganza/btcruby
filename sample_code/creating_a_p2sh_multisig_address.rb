@@ -11,7 +11,7 @@ require_relative "../lib/btcruby.rb"
 keys = [BTC::Key.random, BTC::Key.random, BTC::Key.random]
 pubkeys = keys.map(&:public_key)
 
-multisig_script = BTC::Script.multisig_script(public_keys: pubkeys, signatures_required: 2)
+multisig_script = BTC::Script.multisig(public_keys: pubkeys, signatures_required: 2)
 puts multisig_script.to_s # => "OP_2 03e4e14a... 03b4b3f7... 030fa2ec... OP_3 OP_CHECKMULTISIG"
 
 p2sh_script = multisig_script.p2sh_script
