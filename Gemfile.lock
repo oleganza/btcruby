@@ -7,8 +7,17 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    byebug (10.0.2)
+    coderay (1.1.2)
     ffi (1.9.18)
+    method_source (0.9.0)
     minitest (5.10.2)
+    pry (0.11.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
+    pry-byebug (3.6.0)
+      byebug (~> 10.0)
+      pry (~> 0.10)
     rake (10.3.2)
 
 PLATFORMS
@@ -17,6 +26,7 @@ PLATFORMS
 DEPENDENCIES
   btcruby!
   minitest
+  pry-byebug
   rake
 
 BUNDLED WITH
