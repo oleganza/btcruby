@@ -1,5 +1,6 @@
 require 'minitest/spec'
 require 'minitest/autorun'
+require 'pry-byebug'
 
 require_relative '../lib/btcruby'
 require_relative '../lib/btcruby/extensions'
