@@ -1,3 +1,3 @@
 module BTC
-  VERSION = "1.7".freeze
+  VERSION = "1.8".freeze
 end

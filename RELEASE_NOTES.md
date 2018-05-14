@@ -2,10 +2,16 @@
 BTCRuby Release Notes
 =====================
 
+1.8 (May 14, 2018)
+-------------------------
+
+* Use OpenSSL 1.0 over OpenSSL 1.1 for compatiblity with Ruby 2.3.
+* Added support for debugging with `pry-byebug`.
+
 1.7 (September 28, 2017)
 -------------------------
 
-* Various bugfixes
+* Various bug fixes
 * WIP on API for the versioned scripts
 
 1.6 (January 15, 2015)
